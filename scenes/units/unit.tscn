@@ -1,0 +1,71 @@
+[gd_scene load_steps=11 format=3 uid="uid://camml0x50uxr3"]
+
+[ext_resource type="Script" uid="uid://qqa5dcsuw2af" path="res://scripts/units/unit.gd" id="1_qgilm"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_qgilm"]
+size = Vector3(0.8, 1, 0.8)
+
+[sub_resource type="QuadMesh" id="QuadMesh_6e3tn"]
+size = Vector2(1, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cx6aj"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_6k8ya"]
+size = Vector2(1, 0.1)
+center_offset = Vector3(0, 0, 0.01)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mgebg"]
+albedo_color = Color(0, 1, 0, 1)
+emission_enabled = true
+emission = Color(0, 0.811765, 0, 1)
+emission_energy_multiplier = 0.72
+
+[sub_resource type="BoxMesh" id="BoxMesh_rk2mp"]
+size = Vector3(1.2, 0.1, 1.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_44d7s"]
+albedo_color = Color(1, 1, 0, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qgilm"]
+size = Vector3(0.8, 1, 0.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_6e3tn"]
+size = Vector3(1, 1.2, 1)
+
+[node name="Unit" type="Node3D"]
+script = ExtResource("1_qgilm")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_qgilm")
+
+[node name="HealthBar" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+
+[node name="Background" type="MeshInstance3D" parent="HealthBar"]
+mesh = SubResource("QuadMesh_6e3tn")
+surface_material_override/0 = SubResource("StandardMaterial3D_cx6aj")
+
+[node name="Foreground" type="MeshInstance3D" parent="HealthBar"]
+mesh = SubResource("QuadMesh_6k8ya")
+surface_material_override/0 = SubResource("StandardMaterial3D_mgebg")
+
+[node name="SelectionIndicator" type="Node3D" parent="."]
+visible = false
+
+[node name="Ring" type="MeshInstance3D" parent="SelectionIndicator"]
+mesh = SubResource("BoxMesh_rk2mp")
+surface_material_override/0 = SubResource("StandardMaterial3D_44d7s")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("BoxShape3D_qgilm")
+
+[node name="Area3D" type="Area3D" parent="."]
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+shape = SubResource("BoxShape3D_6e3tn")

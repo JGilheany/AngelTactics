@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3 uid="uid://d0t5xctq2nqjo"]
+
+[ext_resource type="Script" uid="uid://cjfpsf4htblbd" path="res://scripts/systems/tile.gd" id="1_emx1n"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_emx1n"]
+size = Vector2(0.9, 0.9)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_emx1n"]
+size = Vector3(1, 0.1, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_jdae2"]
+size = Vector3(1, 0.5, 1)
+
+[node name="Tile" type="Node3D"]
+script = ExtResource("1_emx1n")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_emx1n")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("BoxShape3D_emx1n")
+
+[node name="Area3D" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+shape = SubResource("BoxShape3D_jdae2")

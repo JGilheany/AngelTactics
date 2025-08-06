@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3 uid="uid://b1jt5a8h0x1ua"]
+
+[ext_resource type="Script" uid="uid://ckoi8ilpw0jp2" path="res://scenes/combat/combatscene.gd" id="1_jecyb"]
+
+[node name="CombatScene" type="Node3D"]
+script = ExtResource("1_jecyb")
+
+[node name="CameraRig" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+current = true
+
+[node name="Units" type="Node3D" parent="."]
+
+[node name="Environment" type="Node3D" parent="."]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.707107, 0.5, -0.5, 0, 0.707107, 0.707107, 0.707107, -0.5, 0.5, 0, 10, 0)
