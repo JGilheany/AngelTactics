@@ -10,6 +10,7 @@ signal unit_died(unit)
 signal unit_turn_started(unit)
 signal unit_turn_ended(unit)
 
+
 # =============================================
 # UNIT STATS - Designer can change these in Inspector
 # =============================================
@@ -22,6 +23,7 @@ signal unit_turn_ended(unit)
 @export var armor: int = 0
 @export var initiative: int = 10
 @export var has_acted: bool = false  # Track if unit has acted this turn
+@export var movement_points_remaining: int #tracks how much movement unit has taken
 
 @export_group("Unit Type")
 @export var team: String = "player"
@@ -36,14 +38,14 @@ signal unit_turn_ended(unit)
 # =============================================
 var current_health: int
 var current_tile: Tile
-var grid_position: Vector2i
+var grid_position: Vector3i
 var has_moved: bool = false
 var is_selected: bool = false
-
 
 # =============================================
 # VISUAL COMPONENTS - Connect to the 3D objects we see
 # =============================================
+
 @onready var mesh_instance = $MeshInstance3D
 @onready var health_bar = $HealthBar
 @onready var selection_indicator = $SelectionIndicator
@@ -67,6 +69,7 @@ var dead_material: StandardMaterial3D
 # =============================================
 func _ready():
 	current_health = max_health    # Start with full health
+	movement_points_remaining = movement_range  # starts them with full movement
 	setup_materials()              # Create the visual styles
 	setup_visual()                 # Set up the 3D appearance
 	setup_click_detection()        # Set up mouse click handling (FIXED!)
@@ -235,45 +238,51 @@ func setup_visual():
 # =============================================
 # GRID MOVEMENT - Handle placing and moving units on the game board
 # =============================================
-func place_on_tile(tile: Tile):
-	print("UNIT ", unit_name, ": Placing on tile at ", tile.grid_position)
-	
-	# Free up the old tile if we were on one
+
+func place_on_tile(tile: Tile) -> void:
 	if current_tile:
-		current_tile.set_free()
+		current_tile.occupied_unit = null  # free old tile
 	
-	# Move to the new tile
 	current_tile = tile
 	grid_position = tile.grid_position
-	
-	# Position the unit in 3D space
-	# Add 0.5 to Y so unit hovers above the ground
-	position = Vector3(tile.grid_position.x, 0.5, tile.grid_position.y)
-	
-	# Tell the tile it's now occupied
-	tile.set_occupied(self)
-	
-	print("✓ Unit placed at world position: ", position)
+	position = Vector3(
+		grid_position.x,
+		grid_position.y + 0.5,
+		grid_position.z
+	)
+	tile.occupied_unit = self
 
 func move_to_tile(target_tile: Tile) -> bool:
 	print("UNIT ", unit_name, ": Attempting to move to ", target_tile.grid_position)
 	
-	# Check if we can move there
-	if not target_tile or not target_tile.is_walkable:
+	# Check walkable & unoccupied
+	if not target_tile.is_walkable:
 		print("✗ Cannot move - tile not walkable")
 		return false
-	
 	if target_tile.occupied_unit and target_tile.occupied_unit != self:
 		print("✗ Cannot move - tile occupied by ", target_tile.occupied_unit.unit_name)
 		return false
 	
-	# Perform the move
+	# Check movement points
+	var distance = abs(target_tile.grid_position.x - grid_position.x) \
+				 + abs(target_tile.grid_position.z - grid_position.z)
+	if distance > movement_points_remaining:
+		print("✗ Not enough movement points!")
+		return false
+	
+	# Free old tile
+	if current_tile:
+		current_tile.occupied_unit = null
+	
+	# Move
 	var old_tile = current_tile
 	place_on_tile(target_tile)
+	movement_points_remaining -= distance
+	
+	# Emit movement event
+	unit_moved.emit(self, old_tile, target_tile)
 	has_moved = true
 	
-	# Tell other systems about the move
-	unit_moved.emit(self, old_tile, target_tile)
 	print("✓ Move successful!")
 	return true
 
@@ -326,7 +335,7 @@ func can_attack_target(target: Unit) -> bool:
 		return false
 	if has_acted:
 		return false
-	var distance = abs(target.grid_position.x - grid_position.x) + abs(target.grid_position.y - grid_position.y)
+	var distance = abs(target.grid_position.x - grid_position.x) + abs(target.grid_position.z - grid_position.z)
 	return distance <= attack_range
 
 func attack_unit(target: Unit) -> int:
@@ -380,3 +389,4 @@ func die():
 func reset_turn():
 	"""Reset for new turn"""
 	has_acted = false
+	movement_points_remaining = movement_range  # reset each turn

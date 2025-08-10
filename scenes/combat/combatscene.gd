@@ -69,16 +69,16 @@ func spawn_initial_units():
 	
 	# SPAWN PLAYER UNITS (left side of battlefield)
 	# We'll try multiple positions for each unit until we find a walkable spot
-	spawn_unit_with_fallback("warrior", "player", [Vector2i(1, 2), Vector2i(0, 2), Vector2i(2, 2), Vector2i(1, 1)])
-	spawn_unit_with_fallback("archer", "player", [Vector2i(0, 4), Vector2i(1, 4), Vector2i(0, 3), Vector2i(0, 5)])
-	spawn_unit_with_fallback("mage", "player", [Vector2i(2, 6), Vector2i(1, 6), Vector2i(0, 6), Vector2i(2, 5)])
-	spawn_unit_with_fallback("warrior", "player", [Vector2i(1, 8), Vector2i(0, 8), Vector2i(2, 8), Vector2i(1, 7)])
+	spawn_unit_with_fallback("warrior", "player", [Vector3i(1, 0, 2), Vector3i(0, 0, 2), Vector3i(2, 0, 2), Vector3i(1, 0, 1)])
+	spawn_unit_with_fallback("archer", "player", [Vector3i(0, 0, 4), Vector3i(1, 0, 4), Vector3i(0, 0, 3), Vector3i(0, 0, 5)])
+	spawn_unit_with_fallback("mage", "player", [Vector3i(2, 0, 6), Vector3i(1, 0, 6), Vector3i(0, 0, 6), Vector3i(2, 0, 5)])
+	spawn_unit_with_fallback("warrior", "player", [Vector3i(1, 0, 8), Vector3i(0, 0, 8), Vector3i(2, 0, 8), Vector3i(1, 0, 7)])
 	
 	# SPAWN ENEMY UNITS (right side of battlefield)  
-	spawn_unit_with_fallback("hound", "enemy", [Vector2i(8, 2), Vector2i(9, 2), Vector2i(7, 2), Vector2i(8, 1)])
-	spawn_unit_with_fallback("hound", "enemy", [Vector2i(9, 4), Vector2i(8, 4), Vector2i(9, 3), Vector2i(9, 5)])
-	spawn_unit_with_fallback("hound", "enemy", [Vector2i(7, 6), Vector2i(8, 6), Vector2i(9, 6), Vector2i(7, 5)])
-	spawn_unit_with_fallback("hound", "enemy", [Vector2i(8, 8), Vector2i(9, 8), Vector2i(7, 8), Vector2i(8, 7)])
+	spawn_unit_with_fallback("hound", "enemy", [Vector3i(8, 0, 2), Vector3i(9, 0, 2), Vector3i(7, 0, 2), Vector3i(8, 0, 1)])
+	spawn_unit_with_fallback("hound", "enemy", [Vector3i(9, 0, 4), Vector3i(8, 0, 4), Vector3i(9, 0, 3), Vector3i(9, 0, 5)])
+	spawn_unit_with_fallback("hound", "enemy", [Vector3i(7, 0, 6), Vector3i(8, 0, 6), Vector3i(9, 0, 6), Vector3i(7, 0, 5)])
+	spawn_unit_with_fallback("hound", "enemy", [Vector3i(8, 0, 8), Vector3i(9, 0, 8), Vector3i(7, 0, 8), Vector3i(8, 0, 7)])
 	
 	
 	# BACKUP: If we still don't have enough units, spawn them anywhere safe
@@ -100,7 +100,7 @@ func connect_unit_signals():
 		unit.unit_died.connect(_on_unit_died) 
 
 # SMART UNIT SPAWNING: Try multiple positions until we find a walkable tile
-func spawn_unit_with_fallback(unit_type: String, team: String, preferred_positions: Array[Vector2i]):
+func spawn_unit_with_fallback(unit_type: String, team: String, preferred_positions: Array[Vector3i]):
 	print("Trying to spawn ", unit_type, " (", team, ") with ", preferred_positions.size(), " fallback positions")
 	
 	# TRY EACH POSITION: Go through the list until we find one that works
@@ -113,14 +113,14 @@ func spawn_unit_with_fallback(unit_type: String, team: String, preferred_positio
 	# IF ALL POSITIONS FAILED: Find any walkable tile in the team's area
 	print("⚠ All preferred positions failed, searching for any walkable tile...")
 	var backup_position = find_safe_spawn_area(team)
-	if backup_position != Vector2i(-1, -1):
+	if backup_position != Vector3i(-1, 0, -1):
 		return spawn_unit(unit_type, team, backup_position)
 	else:
 		print("✗ CRITICAL ERROR: Could not find any walkable tile for ", unit_type, " (", team, ")")
 		return null
 
 # AREA SEARCH: Find any walkable tile in the team's side of the battlefield
-func find_safe_spawn_area(team: String) -> Vector2i:
+func find_safe_spawn_area(team: String) -> Vector3i:
 	# DEFINE TEAM AREAS: Different search zones for each team
 	var search_columns: Array[int] = []
 	
@@ -132,13 +132,13 @@ func find_safe_spawn_area(team: String) -> Vector2i:
 	# SEARCH SYSTEMATICALLY: Check every tile in the team's area
 	for x in search_columns:
 		for z in range(grid.grid_height):
-			var tile = grid.get_tile(Vector2i(x, z))
+			var tile = grid.get_tile(Vector3i(x, 0, z))
 			if tile and tile.is_walkable and not tile.occupied_unit:
-				print("✓ Found safe spawn area at ", Vector2i(x, z))
-				return Vector2i(x, z)
+				print("✓ Found safe spawn area at ", Vector3i(x, 0, z))
+				return Vector3i(x, 0, z)
 	
 	print("✗ No safe spawn area found for team ", team)
-	return Vector2i(-1, -1)  # Return invalid position if nothing found
+	return Vector3i(-1, 0, -1)  # Return invalid position if nothing found
 
 # BACKUP SYSTEM: Make sure each team has at least some units
 func ensure_minimum_units():
@@ -165,16 +165,16 @@ func spawn_emergency_unit(unit_type: String, team: String):
 	# SEARCH ENTIRE BATTLEFIELD: Look for any walkable tile
 	for x in range(grid.grid_width):
 		for z in range(grid.grid_height):
-			var tile = grid.get_tile(Vector2i(x, z))
+			var tile = grid.get_tile(Vector3i(x, 0, z))
 			if tile and tile.is_walkable and not tile.occupied_unit:
-				print("🚨 Emergency spawn at ", Vector2i(x, z))
-				return spawn_unit(unit_type, team, Vector2i(x, z))
+				print("🚨 Emergency spawn at ", Vector3i(x, 0, z))
+				return spawn_unit(unit_type, team, Vector3i(x, 0, z))
 	
 	print("🚨 CRITICAL: Cannot spawn emergency unit - no walkable tiles!")
 	return null
 
 # UNIT CREATION: Create a specific unit type at a specific position
-func spawn_unit(unit_type: String, team: String, grid_pos: Vector2i):
+func spawn_unit(unit_type: String, team: String, grid_pos: Vector3i):
 	var target_tile = grid.get_tile(grid_pos)
 	if not target_tile or not target_tile.is_walkable: 
 		print("❌ Cannot spawn at %s - tile not walkable" % str(grid_pos))
@@ -246,7 +246,7 @@ func show_unit_options():
 	print("3. END TURN (press SPACE)")
 	
 	# Highlight movement options
-	grid.highlight_walkable_tiles(selected_unit.grid_position, selected_unit.movement_range)
+	grid.highlight_walkable_tiles(selected_unit.grid_position, selected_unit.movement_points_remaining)
 	
 	# Highlight attack targets
 	highlight_attack_targets()
@@ -297,19 +297,20 @@ func _on_tile_selected(tile: Tile):
 	
 	# CHECK IF WE HAVE A SELECTED UNIT: Only proceed if a unit is selected
 	if not selected_unit:
-		print("✗ No unit selected - showing movement range from clicked tile")
+		print("✗ No unit selected")
+		#print("✗ No unit selected - showing movement range from clicked tile")
 		# For debugging: still show range from clicked tile
-		grid.highlight_walkable_tiles(tile.grid_position, 3)
+		#grid.highlight_walkable_tiles(tile.grid_position, 3)
 		return
 	
 	# CHECK IF TILE IS WALKABLE: Can the unit move there?
-	if not tile.is_walkable or tile.occupied_unit:
-		print("✗ Cannot move to ", tile.grid_position, " - tile blocked or occupied")
-		return
+	#if not tile.is_walkable or tile.occupied_unit:
+		#print("✗ Cannot move to ", tile.grid_position, " - tile blocked or occupied")
+		#return
 	
 	# CHECK MOVEMENT RANGE: Is the tile within the unit's movement range?
-	var distance = abs(tile.grid_position.x - selected_unit.grid_position.x) + abs(tile.grid_position.y - selected_unit.grid_position.y)
-	if distance > selected_unit.movement_range:
+	var distance = abs(tile.grid_position.x - selected_unit.grid_position.x)  + abs(tile.grid_position.z - selected_unit.grid_position.z)
+	if distance > selected_unit.movement_points_remaining:
 		print("✗ Cannot move to ", tile.grid_position, " - too far (distance: ", distance, ", range: ", selected_unit.movement_range, ")")
 		return
 	
@@ -458,7 +459,7 @@ func setup_camera():
 	
 	var query = PhysicsRayQueryParameters3D.create(from, to)
 	query.collision_mask = 3  # Check both layer 1 (tiles) and layer 2 (units)
-	var result = space_state.intersect_ray(query)
+	var _result = space_state.intersect_ray(query)
 	
 	#if result:
 		#print("✓ Raycast hit something at: ", result.position)
@@ -514,6 +515,19 @@ func _input(event):
 		#print("Hit object: ", hit_object)
 		#print("Hit object type: ", hit_object.get_class())
 		#print("Hit object collision layer: ", hit_object.collision_layer)
+		if not result.is_empty():
+			var collider = result.collider
+			print("DEBUG RAY HIT:", collider, " class:", collider.get_class())
+			var cur = collider
+			var depth = 0
+			while cur and depth < 6:
+				print("  parent[", depth, "]:", cur, " class:", cur.get_class())
+				if cur is Tile:
+					print("    -> Tile grid_position:", cur.grid_position, " mesh.visible:", (cur.get_node_or_null('MeshInstance3D') != null and cur.get_node_or_null('MeshInstance3D').visible))
+					break
+				cur = cur.get_parent()
+				depth += 1
+		
 		
 		# Handle unit clicks (collision layer 2)
 		if hit_object.collision_layer == 2:
@@ -542,3 +556,10 @@ func _input(event):
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_SPACE:
 		print("SPACEBAR pressed - ending turn")
 		end_turn()
+		
+	#scroll up and down floors with [ and ]
+	elif event is InputEventKey and event.pressed:
+		if event.keycode == KEY_BRACKETLEFT:
+			grid.switch_layer(-1)
+		elif event.keycode == KEY_BRACKETRIGHT:
+			grid.switch_layer(1)

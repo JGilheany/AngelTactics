@@ -11,11 +11,13 @@ signal tile_selected(tile)
 # EXPORTED VARIABLES: These appear in Godot Inspector and can be tweaked per-grid
 @export var grid_width: int = 10     # How many tiles wide the grid is
 @export var grid_height: int = 10  # How many tiles tall the grid is  
+@export var grid_depth: int = 5  # number of vertical layers
 @export var tile_size: float = 1.0    # Size of each tile in world units (1.0 = 1 meter)
 
+
 # INTERNAL VARIABLES: Used by the script but not visible in Inspector
-# 2D array to store all tile references - tiles[x][y] gives you the tile at position (x,y)
-var tiles: Array[Array] = []
+var tiles: Array = []  # 3D array tiles[x][y][z]
+var current_layer: int = 0
 
 # Pre-loads the Tile scene file so we can create instances of it
 # preload() happens at compile time - more efficient than load()
@@ -27,62 +29,75 @@ var tile_scene = preload("res://scenes/maps/tile.tscn")
 # _ready() runs once when this Grid is added to the scene
 func _ready():
 		generate_grid()    # Create all the tiles immediately
+		set_visible_layer(0)
+
+
+
 
 # Creates the entire grid of tiles
 func generate_grid():
-#	print("=== GENERATING GRID DEBUG ===")
-	
-	# CLEANUP: Remove any existing tiles (useful if regenerating grid)
+	# --- CLEANUP ---
 	for child in tiles_container.get_children():
-		child.queue_free()    # Safely removes child nodes next frame
-	
-	# INITIALIZE 2D ARRAY: Prepare the tiles array structure
-	tiles.clear()                # Remove any old data
-	tiles.resize(grid_width)     # Make array have 'grid_width' rows
-	# ... existing setup code ...
-	
+		child.queue_free()
+
+	tiles.clear()
+	tiles.resize(grid_width)
+
+	# --- GRID CREATION ---
 	for x in range(grid_width):
 		tiles[x] = []
-		tiles[x].resize(grid_height)
-		
-		for z in range(grid_height):
-			var tile_instance = tile_scene.instantiate()
-			tile_instance.position = Vector3(x * tile_size, 0, z * tile_size)
-			tile_instance.grid_position = Vector2i(x, z)
-			
-		# RANDOMLY BLOCK 20% OF TILES
-			if randf() < 0.2:  # 20% chance
-				tile_instance.is_walkable = false
-				tile_instance.movement_cost = 999  # High cost = blocked
-				print("🟥 Blocked tile at ", Vector2i(x, z))
-			else:
-				tile_instance.is_walkable = true
-				tile_instance.movement_cost = 1
-				print("🟩 Walkable tile at ", Vector2i(x, z))
-		
-			tiles_container.add_child(tile_instance)
-			
-			
-			# DEBUG: Verify signal connections
-			var _connection_result1 = tile_instance.tile_clicked.connect(_on_tile_clicked)
-			var _connection_result2 = tile_instance.tile_hovered.connect(_on_tile_hovered)  
-			var _connection_result3 = tile_instance.tile_unhovered.connect(_on_tile_unhovered)
-			
-			#print("  Signal connections - clicked:", connection_result1 == OK, " hovered:", connection_result2 == OK, " unhovered:", connection_result3 == OK)
-			
-			tiles[x][z] = tile_instance
+		for y in range(grid_depth):
+			tiles[x].append([])
+			for z in range(grid_height):
 
-	#print("=== GRID GENERATION COMPLETE ===")
-	#print("Total tiles created: ", grid_width * grid_height)
-	#print("Tiles container children: ", tiles_container.get_child_count())
+				var tile_instance = tile_scene.instantiate()
+
+				# Store logical grid position as pure integers
+				var grid_pos = Vector3i(x, y, z)
+				tile_instance.grid_position = grid_pos
+
+				# Place in world space (scaled by tile_size)
+				tile_instance.position = Vector3(
+					x * tile_size,
+					y * tile_size,
+					z * tile_size
+				)
+
+				# Walkability rules
+				if y == 0:
+					if randf() < 0.2:
+						tile_instance.is_walkable = false
+						tile_instance.movement_cost = 999
+						print("🟥 Blocked tile at ", grid_pos)
+					else:
+						tile_instance.is_walkable = true
+						tile_instance.movement_cost = 1
+						print("🟩 Walkable tile at ", grid_pos)
+				else:
+					tile_instance.is_walkable = false
+					tile_instance.movement_cost = 999
+
+				# Add tile to container
+				tiles_container.add_child(tile_instance)
+
+				# Connect signals only if not already connected
+				if not tile_instance.tile_clicked.is_connected(_on_tile_clicked):
+					tile_instance.tile_clicked.connect(_on_tile_clicked)
+				if not tile_instance.tile_hovered.is_connected(_on_tile_hovered):
+					tile_instance.tile_hovered.connect(_on_tile_hovered)
+				if not tile_instance.tile_unhovered.is_connected(_on_tile_unhovered):
+					tile_instance.tile_unhovered.connect(_on_tile_unhovered)
+
+				# Store tile in 3D array
+				tiles[x][y].append(tile_instance)
 
 
 # Called automatically when any tile in the grid is clicked
 # The tile parameter is the specific tile that was clicked
 func _on_tile_clicked(tile: Tile):
-	#print("=== GRID RECEIVED CLICK ===")
-	#print("✓ Tile position: ", tile.grid_position)
-	#print("✓ Emitting tile_selected signal to CombatScene")
+	print("=== GRID RECEIVED CLICK ===")
+	print("✓ Tile position: ", tile.grid_position)
+	print("✓ Emitting tile_selected signal to CombatScene")
 	tile_selected.emit(tile)
 
 
@@ -103,11 +118,14 @@ func _on_tile_unhovered(tile: Tile):
 
 # UTILITY FUNCTION: Get a specific tile by grid coordinates
 # Returns the Tile object at position (grid_pos.x, grid_pos.y) or null if invalid
-func get_tile(grid_pos: Vector2i) -> Tile:
-	if is_valid_position(grid_pos):           # Check if coordinates are within grid bounds
-		return tiles[grid_pos.x][grid_pos.y]  # Return the tile at that position
-	return null                               # Return null for invalid positions
-
+func get_tile(grid_pos: Vector3i) -> Tile:
+	if grid_pos.x >= 0 and grid_pos.x < grid_width \
+	and grid_pos.y >= 0 and grid_pos.y < grid_depth \
+	and grid_pos.z >= 0 and grid_pos.z < grid_height:
+		return tiles[grid_pos.x][grid_pos.y][grid_pos.z]
+	return null
+	
+	
 # UTILITY FUNCTION: Check if grid coordinates are within the grid boundaries
 func is_valid_position(grid_pos: Vector2i) -> bool:
 	return grid_pos.x >= 0 and grid_pos.x < grid_width and grid_pos.y >= 0 and grid_pos.y < grid_height
@@ -125,7 +143,7 @@ func world_to_grid(world_pos: Vector3) -> Vector2i:
 
 # COORDINATE CONVERSION: Convert grid coordinates to world position (3D space)  
 # Useful for positioning units or camera focus
-func grid_to_world(grid_pos: Vector2i) -> Vector3:
+func grid_to_world(grid_pos: Vector3i) -> Vector3:
 	return Vector3(
 		grid_pos.x * tile_size,    # Grid X becomes world X
 		0,                         # Y is always 0 (ground level)
@@ -156,67 +174,114 @@ func get_neighbors(grid_pos: Vector2i) -> Array[Tile]:
 
 # MOVEMENT SYSTEM: Highlight all tiles within movement range of a position
 # Shows green for walkable tiles, red for blocked tiles
-func highlight_walkable_tiles(from_position: Vector2i, movement_range: int):
-	#print("=== HIGHLIGHT WALKABLE TILES DEBUG ===")
-	#print("From position: ", from_position)
-	#print("Movement range: ", movement_range)
-	
-	# Clear previous highlights
+# MOVEMENT SYSTEM: Highlight all walkable tiles in range
+func highlight_walkable_tiles(from_position: Vector3i, movement_range: int):
 	clear_all_highlights()
-	#print("✓ Cleared all previous highlights")
-	
-	# Get tiles in range
+
 	var walkable_tiles = get_tiles_in_range(from_position, movement_range)
-	#print("✓ Found ", walkable_tiles.size(), " tiles in range")
-	
-	if walkable_tiles.size() == 0:
-		#print("✗ ERROR: No tiles found in range!")
-		print("✗ Check if from_position ", from_position, " is valid")
-		print("✗ Grid size: ", grid_width, "x", grid_height)
+	if walkable_tiles.is_empty():
+		print("✗ No tiles found in range from ", from_position)
 		return
-	
-	# Process each tile
-	for i in range(walkable_tiles.size()):
-		var tile = walkable_tiles[i]
-		#print("Processing tile ", i+1, "/", walkable_tiles.size(), " at ", tile.grid_position)
-		
-		if tile.is_walkable:
-			#print("  ✓ Tile is walkable - highlighting GREEN")
-			tile.highlight_walkable()
-		else:
-			#print("  ✗ Tile is blocked - highlighting RED")
-			tile.highlight_blocked()
-	
-	#print("✓ All tiles processed for highlighting")
-	
-	
-# RANGE CALCULATION: Get all tiles within a specific distance from a position
-# Uses "Manhattan distance" (sum of horizontal and vertical distance)
-func get_tiles_in_range(from_position: Vector2i, movement_range: int) -> Array[Tile]:
-	var tiles_in_range: Array[Tile] = []    # Array to store tiles in range
-	
-	# Check all tiles in a square area around the from_position
+
+	var layer_y = from_position.y
 	for x in range(from_position.x - movement_range, from_position.x + movement_range + 1):
-		for y in range(from_position.y - movement_range, from_position.y + movement_range + 1):
-			# Calculate Manhattan distance: |x1-x2| + |y1-y2|
-			var distance = abs(x - from_position.x) + abs(y - from_position.y)
-			
-			# Only include tiles within the specified range
+		for z in range(from_position.z - movement_range, from_position.z + movement_range + 1):
+			var distance = abs(x - from_position.x) + abs(z - from_position.z)
 			if distance <= movement_range:
-				var tile = get_tile(Vector2i(x, y))    # Try to get tile at this position
-				if tile:                               # If tile exists
-					tiles_in_range.append(tile)        # Add it to our results
-	
-	return tiles_in_range    # Return all tiles found within range
+				var check_pos = Vector3i(x, layer_y, z)
+				var tile = get_tile(check_pos)
+				if tile:
+					if tile.is_walkable:
+						tile.highlight_walkable()
+					else:
+						tile.highlight_blocked()
+
+
+
+# RANGE CALCULATION: Get all tiles within movement range from a specific position
+func get_tiles_in_range(from_position: Vector3i, movement_range: int) -> Array[Tile]:
+	var tiles_in_range: Array[Tile] = []
+
+	for x in range(from_position.x - movement_range, from_position.x + movement_range + 1):
+		for z in range(from_position.z - movement_range, from_position.z + movement_range + 1):
+
+			var distance = abs(x - from_position.x) + abs(z - from_position.z)
+
+			if distance <= movement_range:
+				var check_pos = Vector3i(x, from_position.y, z)
+				var tile = get_tile(check_pos)
+				if tile:
+					tiles_in_range.append(tile)
+
+	return tiles_in_range
+
 
 # UTILITY FUNCTION: Remove highlighting from all tiles in the grid
 # Useful for clearing movement range displays
 func clear_all_highlights():
-	# Loop through every tile in the 2D array
-	for row in tiles:              # For each row (Array of tiles)
-		for tile in row:           # For each tile in that row
-			if tile:               # Make sure tile exists (safety check)
-				tile.clear_highlight()    # Tell tile to return to normal appearance
+	for x in range(grid_width):
+		for y in range(grid_depth):
+			for z in range(grid_height):
+				var tile = tiles[x][y][z]
+				if tile:
+					tile.clear_highlight()
+
 
 func test_debug():
 	print("Grid script: OK")
+
+
+
+func set_visible_layer(layer_y: int):
+	for x in range(grid_width):
+		for y in range(grid_depth):
+			for z in range(grid_height):
+				var tile = tiles[x][y][z]
+				if not tile:
+					continue
+
+				var mesh = tile.mesh_instance
+				var staticb = tile.static_body
+				var area = tile.area
+
+				# Active layer = fully visible + interactive
+				if y == layer_y:
+					tile.visible = true
+					if mesh: mesh.visible = true
+					if staticb:
+						staticb.collision_layer = 1
+						staticb.collision_mask = 0
+					if area:
+						area.collision_layer = 1
+						area.monitoring = true
+						area.monitorable = true
+
+				# Above layers = hidden and non-interactive
+				elif y > layer_y:
+					tile.visible = false
+					if mesh: mesh.visible = false
+					if staticb:
+						staticb.collision_layer = 0
+						staticb.collision_mask = 0
+					if area:
+						area.collision_layer = 0
+						area.monitoring = false
+						area.monitorable = false
+
+				# Below layers = hidden and non-interactive
+				else:
+					tile.visible = false
+					if mesh: mesh.visible = false
+					if staticb:
+						staticb.collision_layer = 0
+						staticb.collision_mask = 0
+					if area:
+						area.collision_layer = 0
+						area.monitoring = false
+						area.monitorable = false
+
+
+func switch_layer(delta: int):
+	current_layer = clamp(current_layer + delta, 0, grid_depth - 1)
+	set_visible_layer(current_layer)
+	print("📐 Now viewing layer %d" % current_layer)

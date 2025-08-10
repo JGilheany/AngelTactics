@@ -12,9 +12,10 @@ signal tile_hovered(tile)    # Sent when mouse enters this tile
 signal tile_unhovered(tile)  # Sent when mouse leaves this tile
 
 # EXPORTED VARIABLES: These appear in the Godot Inspector and can be changed per-tile
-@export var grid_position: Vector2i    # Where this tile is on the grid (x, y coordinates)
+@export var grid_position: Vector3i    # Where this tile is on the grid (x, y, z coordinates)
 @export var is_walkable: bool = true   # Can units move through this tile?
 @export var movement_cost: int = 1     # How many movement points to enter this tile
+
 
 # INTERNAL VARIABLES: Used by the script but not visible in Inspector
 var occupied_unit: Node3D = null       # Which unit is standing on this tile (null = empty)
