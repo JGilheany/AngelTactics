@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://bxv0sxkqpgmgb"]
+
+[ext_resource type="Script" uid="uid://f808qi81cm2j" path="res://scenes/maps/city/Building2x4x1.gd" id="1_faqcw"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_nle0m"]
+size = Vector3(2, 4, 1)
+
+[node name="Building4x2" type="Node3D"]
+script = ExtResource("1_faqcw")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 2, 0)
+mesh = SubResource("BoxMesh_nle0m")
+skeleton = NodePath("")

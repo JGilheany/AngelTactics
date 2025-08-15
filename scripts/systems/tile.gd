@@ -49,7 +49,7 @@ func _ready():
 	
 # Creates all the different colored materials for tile states
 func setup_materials():
-	print("TILE ", grid_position, ": Setting up materials...")
+	#print("TILE ", grid_position, ": Setting up materials...")
 	
 	# Default material
 	default_material = StandardMaterial3D.new()

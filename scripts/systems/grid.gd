@@ -8,7 +8,7 @@ class_name Grid
 # Other objects (like CombatScene) can listen for this signal
 signal tile_selected(tile)
 
-# EXPORTED VARIABLES: These appear in Godot Inspector and can be tweaked per-grid
+# EXPORTED VARIABLES:
 @export var grid_width: int = 10     # How many tiles wide the grid is
 @export var grid_height: int = 10  # How many tiles tall the grid is  
 @export var grid_depth: int = 5  # number of vertical layers
@@ -16,20 +16,37 @@ signal tile_selected(tile)
 
 
 # INTERNAL VARIABLES: Used by the script but not visible in Inspector
-var tiles: Array = []  # 3D array tiles[x][y][z]
+@export var tiles: Array = []  # 3D array tiles[x][y][z]
 var current_layer: int = 0
 
 # Pre-loads the Tile scene file so we can create instances of it
 # preload() happens at compile time - more efficient than load()
 var tile_scene = preload("res://scenes/maps/tile.tscn")
 
+
 # Reference to the "Tiles" child node that will hold all our tile instances
 @onready var tiles_container = $Tiles
+@onready var building_spawner = CityBuildingSpawner.new()
 
 # _ready() runs once when this Grid is added to the scene
 func _ready():
-		generate_grid()    # Create all the tiles immediately
-		set_visible_layer(0)
+	generate_grid()    # Create all the tiles immediately
+		
+		
+
+	# Pass grid data to spawner
+	building_spawner.tiles = tiles
+	building_spawner.grid_height = grid_height
+	building_spawner.grid_width = grid_width
+
+	building_spawner.tile_size = tile_size
+
+	add_child(building_spawner)
+	building_spawner.spawn_city_buildings()
+	
+	
+	
+	set_visible_layer(0)
 
 
 
@@ -64,18 +81,20 @@ func generate_grid():
 				)
 
 				# Walkability rules
-				if y == 0:
-					if randf() < 0.2:
-						tile_instance.is_walkable = false
-						tile_instance.movement_cost = 999
-						print("🟥 Blocked tile at ", grid_pos)
-					else:
-						tile_instance.is_walkable = true
-						tile_instance.movement_cost = 1
-						print("🟩 Walkable tile at ", grid_pos)
-				else:
-					tile_instance.is_walkable = false
-					tile_instance.movement_cost = 999
+				#if y == 0:
+					#if randf() < 0.2:
+						#tile_instance.is_walkable = false
+						#tile_instance.movement_cost = 999
+						#print("🟥 Blocked tile at ", grid_pos)
+					#else:
+						#tile_instance.is_walkable = true
+						#tile_instance.movement_cost = 1
+						#print("🟩 Walkable tile at ", grid_pos)
+				#else:
+					#tile_instance.is_walkable = false
+					#tile_instance.movement_cost = 999
+					
+
 
 				# Add tile to container
 				tiles_container.add_child(tile_instance)
@@ -90,6 +109,8 @@ func generate_grid():
 
 				# Store tile in 3D array
 				tiles[x][y].append(tile_instance)
+
+
 
 
 # Called automatically when any tile in the grid is clicked
@@ -132,14 +153,6 @@ func is_valid_position(grid_pos: Vector2i) -> bool:
 	# Returns true only if: x is 0 or greater AND x is less than grid_width
 	#                  AND: y is 0 or greater AND y is less than grid_height
 
-# COORDINATE CONVERSION: Convert world position (3D space) to grid coordinates
-# Useful for placing units or converting mouse clicks to grid positions
-func world_to_grid(world_pos: Vector3) -> Vector2i:
-	return Vector2i(
-		int(round(world_pos.x / tile_size)),    # Convert X world position to grid X
-		int(round(world_pos.z / tile_size))     # Convert Z world position to grid Y
-	)
-	# round() handles floating point precision, int() converts to integer
 
 # COORDINATE CONVERSION: Convert grid coordinates to world position (3D space)  
 # Useful for positioning units or camera focus
@@ -147,7 +160,15 @@ func grid_to_world(grid_pos: Vector3i) -> Vector3:
 	return Vector3(
 		grid_pos.x * tile_size,    # Grid X becomes world X
 		0,                         # Y is always 0 (ground level)
-		grid_pos.y * tile_size     # Grid Y becomes world Z
+		grid_pos.y * tile_size)     # Grid Y becomes world Z
+
+# COORDINATE CONVERSION: Convert world position (3D space) to grid coordinates
+# Useful for placing units or converting mouse clicks to grid positions
+func world_to_grid(world_pos: Vector3) -> Vector3i:
+	return Vector3i(
+		int(floor(world_pos.x / tile_size)),
+		0,
+		int(floor(world_pos.z / tile_size))
 	)
 
 # PATHFINDING HELPER: Get all tiles adjacent to a given position
@@ -285,3 +306,12 @@ func switch_layer(delta: int):
 	current_layer = clamp(current_layer + delta, 0, grid_depth - 1)
 	set_visible_layer(current_layer)
 	print("📐 Now viewing layer %d" % current_layer)
+
+
+
+
+func world_to_tile(world_pos: Vector3) -> Vector3i:
+	var tile_x = int(floor(world_pos.x / tile_size))
+	var tile_y = int(floor(world_pos.y / tile_size)) # if you care about vertical tiles
+	var tile_z = int(floor(world_pos.z / tile_size))
+	return Vector3i(tile_x, tile_y, tile_z)
