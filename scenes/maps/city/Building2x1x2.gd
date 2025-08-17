@@ -1,9 +1,9 @@
 
 extends Node3D
 
-@export var size_x: int = 2   # tiles along X (east–west)
+@export var size_x: int = 2   # tiles along X (east–west) width
 @export var floors: int = 1   # how many Y layers to block (0 = ground only => set to 1)
-@export var size_z: int = 2   # tiles along Z (north–south)
+@export var size_z: int = 2   # tiles along Z (north–south) height
 
 
 func _ready():
@@ -16,7 +16,7 @@ func _block_footprint():
 		return
 
 	# Convert this building's world pos -> grid x/z. Your tile_size is ~1, so floor() is fine.
-	var origin_x := int(floor(global_transform.origin.x / grid.tile_size) + 1 ) #The one is here because without it, the building blockage shifts a tile to the left
+	var origin_x := int(floor(global_transform.origin.x / grid.tile_size) ) #The one is here because without it, the building blockage shifts a tile to the left
 	
 	var origin_z := int(floor(global_transform.origin.z / grid.tile_size))
 

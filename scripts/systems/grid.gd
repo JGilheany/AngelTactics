@@ -9,8 +9,8 @@ class_name Grid
 signal tile_selected(tile)
 
 # EXPORTED VARIABLES:
-@export var grid_width: int = 10     # How many tiles wide the grid is
-@export var grid_height: int = 10  # How many tiles tall the grid is  
+@export var grid_width: int = 20     # How many tiles wide the grid is
+@export var grid_height: int = 20  # How many tiles tall the grid is  
 @export var grid_depth: int = 5  # number of vertical layers
 @export var tile_size: float = 1.0    # Size of each tile in world units (1.0 = 1 meter)
 
@@ -23,16 +23,17 @@ var current_layer: int = 0
 # preload() happens at compile time - more efficient than load()
 var tile_scene = preload("res://scenes/maps/tile.tscn")
 
-
+#background plane
+@onready var background_plane = $BackgroundPlane
 # Reference to the "Tiles" child node that will hold all our tile instances
 @onready var tiles_container = $Tiles
-@onready var building_spawner = CityBuildingSpawner.new()
+@onready var building_spawner = CitySpawner.new()
 
 # _ready() runs once when this Grid is added to the scene
 func _ready():
 	generate_grid()    # Create all the tiles immediately
-		
-		
+	setup_background_plane() #needs grid dimensions so comes second
+	
 
 	# Pass grid data to spawner
 	building_spawner.tiles = tiles
@@ -41,8 +42,8 @@ func _ready():
 
 	building_spawner.tile_size = tile_size
 
-	add_child(building_spawner)
-	building_spawner.spawn_city_buildings()
+	add_child(building_spawner) #calls city.gd to do it's onready()
+	#building_spawner.spawn_city_buildings()
 	
 	
 	
@@ -315,3 +316,36 @@ func world_to_tile(world_pos: Vector3) -> Vector3i:
 	var tile_y = int(floor(world_pos.y / tile_size)) # if you care about vertical tiles
 	var tile_z = int(floor(world_pos.z / tile_size))
 	return Vector3i(tile_x, tile_y, tile_z)
+
+
+
+#Background plane
+func setup_background_plane():
+	if not background_plane:
+		print("⚠ Background plane not found!")
+		return
+	
+	print("Setting up background plane...")
+	
+	# Get or create the BoxMesh
+	var box_mesh = background_plane.mesh as BoxMesh
+	if not box_mesh:
+		box_mesh = BoxMesh.new()
+		background_plane.mesh = box_mesh
+	
+	# Size it to match the grid
+	box_mesh.size = Vector3(grid_width, 0.1, grid_height)
+	
+	# Position it centered under the grid
+	var center_x = grid_width * 0.5 - 0.5
+	var center_z = grid_height * 0.5 - 0.5
+	background_plane.position = Vector3(center_x, -0.1, center_z)
+	
+	# Set up material in code if you want
+	#if not background_plane.material_override:
+		#var material = StandardMaterial3D.new()
+		#material.albedo_color = Color(0.2, 0.2, 0.3, 0.8)
+		#material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		#background_plane.material_override = material
+	
+	print("✓ Background plane sized to: ", box_mesh.size)

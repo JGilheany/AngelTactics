@@ -45,40 +45,45 @@ func _ready():
 		area.mouse_exited.connect(_on_mouse_exited)
 	
 	update_appearance()
-	
+	#setup_transparency()
 	
 # Creates all the different colored materials for tile states
 func setup_materials():
 	#print("TILE ", grid_position, ": Setting up materials...")
 	
-	# Default material
+	# Default material - NOW WITH TRANSPARENCY
 	default_material = StandardMaterial3D.new()
-	default_material.albedo_color = Color.WHITE
-	#print("  ✓ Default material created (white)")
+	default_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA  # Enable transparency
+	default_material.albedo_color = Color(1.0, 1.0, 1.0, 0.1)  # White with 50% opacity
+	#print("  ✓ Default material created (transparent white)")
 	
 	# Hover material  
 	hover_material = StandardMaterial3D.new()
-	hover_material.albedo_color = Color.YELLOW
+	hover_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA  # Also make hover transparent
+	hover_material.albedo_color = Color(1.0, 1.0, 0.0, 0.7)  # Yellow with 70% opacity
 	hover_material.emission = Color.YELLOW * 0.5
-	#print("  ✓ Hover material created (yellow)")
+	#print("  ✓ Hover material created (transparent yellow)")
 	
 	# Walkable material - make it VERY green to be obvious
 	walkable_material = StandardMaterial3D.new()
-	walkable_material.albedo_color = Color.GREEN
+	walkable_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	walkable_material.albedo_color = Color(0.0, 1.0, 0.0, 0.8)  # Green with 60% opacity
 	walkable_material.emission = Color.GREEN * 0.8  # Strong glow
-	#print("  ✓ Walkable material created (bright green)")
+	#print("  ✓ Walkable material created (transparent bright green)")
 	
 	# Blocked material - for permanently impassable terrain
 	blocked_material = StandardMaterial3D.new()
-	blocked_material.albedo_color = Color.RED
+	blocked_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	blocked_material.albedo_color = Color(1.0, 0.0, 0.0, 0.8)  # Red with 80% opacity (more visible)
 	blocked_material.emission = Color.RED * 0.5
-	#print("  ✓ Blocked material created (red)")
+	#print("  ✓ Blocked material created (transparent red)")
 	
 	# NEW: Occupied material - for tiles with units on them
 	occupied_material = StandardMaterial3D.new()
-	occupied_material.albedo_color = Color.ORANGE
+	occupied_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	occupied_material.albedo_color = Color(1.0, 0.5, 0.0, 0.7)  # Orange with 70% opacity
 	occupied_material.emission = Color.ORANGE * 0.4  # Subtle glow
-	print("  ✓ Occupied material created (orange)")
+	print("  ✓ Occupied material created (transparent orange)")
 	
 	# Apply default immediately
 	if mesh_instance:
@@ -88,9 +93,7 @@ func setup_materials():
 		#print("  ✗ ERROR: mesh_instance is null!")
 
 
-	
-# Called automatically when player clicks on this tile
-# Parameters are provided by Godot's input system
+
 func _on_tile_clicked(_camera, event, _click_position, _click_normal, _shape_idx):
 	#print("=== TILE CLICK DEBUG ===")
 	#print("Event type: ", event.get_class())
@@ -101,12 +104,7 @@ func _on_tile_clicked(_camera, event, _click_position, _click_normal, _shape_idx
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			#print("✓ LEFT CLICK CONFIRMED - emitting tile_clicked signal")
 			tile_clicked.emit(self)
-			#print("✓ Signal emitted!")
-		#else:
-			#print("✗ Not a left click or not pressed")
-	#else:
-		#print("✗ Not a mouse button event")
-# Called automatically when mouse cursor enters this tile's area
+
 
 
 func _on_mouse_entered():
@@ -123,13 +121,13 @@ func _on_mouse_exited():
 # Called by other scripts when a unit moves onto this tile
 func set_occupied(unit: Node3D):
 	occupied_unit = unit        # Remember which unit is here
-	# NOTE: Don't change is_walkable here - we want to show orange but keep movement logic separate
+	
 	update_appearance()        # Change visual to show it's occupied
-	print("TILE ", grid_position, ": Now occupied by ", unit.name, " - showing ORANGE")
+	#print("TILE ", grid_position, ": Now occupied by ", unit.name, " - showing ORANGE")
 
 # Called by other scripts when a unit leaves this tile
 func set_free():
-	print("TILE ", grid_position, ": Unit left - returning to normal appearance")
+	#print("TILE ", grid_position, ": Unit left - returning to normal appearance")
 	occupied_unit = null       # No unit here anymore
 	update_appearance()       # Change visual back to normal
 
@@ -146,12 +144,7 @@ func highlight_walkable():
 	# Apply the material
 	mesh_instance.material_override = walkable_material
 	#print("  ✓ Green material applied to mesh_instance")
-	
-	# Verify it was applied
-	#if mesh_instance.material_override == walkable_material:
-		#print("  ✓ Material application confirmed")
-	#else:
-		#print("  ✗ Material application FAILED")
+
 
 # Called by Grid script to show this tile is blocked but in range
 func highlight_blocked():
@@ -179,7 +172,6 @@ func update_appearance():
 		return # Exit function early
 	
 	# PRIORITY ORDER: Check states from most specific to most general
-	
 	# 1. OCCUPIED BY UNIT: Show orange (highest priority for occupied tiles)
 	if occupied_unit != null:
 		mesh_instance.material_override = occupied_material
@@ -193,5 +185,3 @@ func update_appearance():
 	# 3. DEFAULT: Show white (normal walkable tile)
 	mesh_instance.material_override = default_material
 	
-func test_tile():
-	print("Tile script is working!") #debug

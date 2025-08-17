@@ -9,6 +9,6 @@ size = Vector3(2, 4, 1)
 script = ExtResource("1_faqcw")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 2, 0)
 mesh = SubResource("BoxMesh_nle0m")
 skeleton = NodePath("")
