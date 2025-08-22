@@ -74,8 +74,11 @@ func setup_materials():
 	# Blocked material - for permanently impassable terrain
 	blocked_material = StandardMaterial3D.new()
 	blocked_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	blocked_material.albedo_color = Color(1.0, 0.0, 0.0, 0.8)  # Red with 80% opacity (more visible)
-	blocked_material.emission = Color.RED * 0.5
+	blocked_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA  # Enable transparency
+	blocked_material.albedo_color = Color(1.0, 1.0, 1.0, 0.1)  # White with 50% opacity, same as default
+	#if want blocked tiles to be red, uncomment the below code
+	#blocked_material.albedo_color = Color(1.0, 0.0, 0.0, 0.8)  # Red with 80% opacity (more visible)
+	#blocked_material.emission = Color.RED * 0.5
 	#print("  ✓ Blocked material created (transparent red)")
 	
 	# NEW: Occupied material - for tiles with units on them
@@ -83,7 +86,7 @@ func setup_materials():
 	occupied_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	occupied_material.albedo_color = Color(1.0, 0.5, 0.0, 0.7)  # Orange with 70% opacity
 	occupied_material.emission = Color.ORANGE * 0.4  # Subtle glow
-	print("  ✓ Occupied material created (transparent orange)")
+	#print("  ✓ Occupied material created (transparent orange)")
 	
 	# Apply default immediately
 	if mesh_instance:

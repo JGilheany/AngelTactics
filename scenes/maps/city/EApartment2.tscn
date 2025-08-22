@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://c2e70v55pe5ph"]
+
+[ext_resource type="Script" uid="uid://b7a5tk4ky54wp" path="res://scenes/maps/city/EApartment2.gd" id="1_dsyqm"]
+[ext_resource type="PackedScene" uid="uid://chuj2ca6y0w50" path="res://assets/models/environment/city/building-b.fbx" id="2_roio1"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_nle0m"]
+size = Vector3(2, 3, 2)
+
+[node name="Building2x3x2" type="Node3D"]
+script = ExtResource("1_dsyqm")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(2.8, 0, 0, 0, 2.8, 0, 0, 0, 2.8, 0.298263, -1.10526, 0.5)
+layers = 0
+mesh = SubResource("BoxMesh_nle0m")
+skeleton = NodePath("")
+
+[node name="building-b" parent="MeshInstance3D" instance=ExtResource("2_roio1")]
+transform = Transform3D(-3.93403e-08, 0, -0.9, 0, 0.9, 0, 0.9, 0, -3.93403e-08, 0.148509, 0.484137, -0.0861704)

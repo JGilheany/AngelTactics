@@ -9,27 +9,62 @@ var tile_size
 
 @export var road_color := Color(0.2, 0.2, 0.2, 1.0) # asphalt grey
 
-# Make sure you have a global grid_occupancy dictionary
-# grid_occupancy[Vector2(x, z)] = true means this tile is blocked (road/pavement/building)
-
-
-
-
 var road_tiles_array: Array[Vector2i] = [] # store positions for flexibility
 var pavement_tiles_array: Array[Vector2i] = [] # store pavement positions
+var building_tiles_array: Array[Vector2i] = [] # Track where buildings are placed
 
+# Building dictionaries organized by facing direction
+# Each dictionary contains buildings that should face that direction
+# "facing_south" means the door faces positive Z (towards higher Z values)
+var buildings_facing_south = []  # Door faces +Z
+var buildings_facing_north = []  # Door faces -Z
+var buildings_facing_east = []   # Door faces +X
+var buildings_facing_west = []   # Door faces -X
+
+
+# Initialize building data for each direction
+func init_building_data():
+	# These are your base buildings - you'll need to organize them by their intended facing
+	# For now, I'm using the same buildings for each direction as an example
+	# You should replace these with your actual oriented building scenes
+	
+	# Buildings that face SOUTH (+Z direction)
+	buildings_facing_south = [
+		{"scene": preload("res://scenes/maps/city/SApartment1.tscn"), "height": 2, "width": 2},
+		]
+	
+	# Buildings that face NORTH (-Z direction)
+	buildings_facing_north = [
+		{"scene": preload("res://scenes/maps/city/NApartment2.tscn"), "height": 2, "width": 2}
+	
+	]
+	
+	# Buildings that face EAST (+X direction)
+	buildings_facing_east = [
+		{"scene": preload("res://scenes/maps/city/EApartment2.tscn"), "height": 2, "width": 2}
+	]
+	
+	# Buildings that face WEST (-X direction)
+	buildings_facing_west = [
+		{"scene": preload("res://scenes/maps/city/WApartment2.tscn"), "height": 2, "width": 2},
+		{"scene": preload("res://scenes/maps/city/WBlock1.tscn"), "height": 2, "width": 2}
+	]
 
 func _ready():
+	init_building_data()
+	print("Generating roads...")
 	generate_roads()
+	print("Generating pavements...")
 	generate_pavements()
-	spawn_city_buildings()
+	print("Generating buildings...")
+	spawn_city_buildings_smart()
 
 # City block road generation with proper spacing
 func generate_roads():
 	var road_tiles := {}
 	
 	# Create a grid-based road system for city blocks
-	var block_size = 10  # Size of each city block (including roads and pavements)
+	var block_size = 12  # Size of each city block (including roads and pavements)
 	var road_width = 2   # Width of roads in tiles
 	var pavement_width = 1  # Width of pavements bordering roads
 	
@@ -116,90 +151,237 @@ func create_pavement_mesh(x: int, y: int, color: Color) -> void:
 func in_bounds(tile: Vector2i) -> bool:
 	return tile.x >= 0 and tile.x < grid_width and tile.y >= 0 and tile.y < grid_height
 
-# Optional: Get the size of buildable areas between roads
-func get_block_size() -> int:
-	return 12 - 2 - 2  # block_size - road_width - (pavement_width * 2) = 8 tiles for buildings
+# Enum for building facing directions
+enum FacingDirection {
+	NORTH,  # Door faces -Z
+	SOUTH,  # Door faces +Z
+	EAST,   # Door faces +X
+	WEST    # Door faces -X
+}
 
+# Get the appropriate building list based on facing direction
+func get_buildings_for_direction(direction: FacingDirection) -> Array:
+	match direction:
+		FacingDirection.SOUTH:
+			return buildings_facing_south
+		FacingDirection.EAST:
+			return buildings_facing_east
+		FacingDirection.WEST:
+			return buildings_facing_west
+		FacingDirection.NORTH:
+			return buildings_facing_north
+		_:
+			return []
 
-# Your base building definitions
-var base_buildings = [
-	{"scene": preload("res://scenes/maps/city/Building2x4x1.tscn"), "height": 2, "width": 1},
-	{"scene": preload("res://scenes/maps/city/Building2x1x2.tscn"), "height": 2, "width": 2},
-	{"scene": preload("res://scenes/maps/city/Building1x4x2.tscn"), "height": 1, "width": 2}
-]
-
-# How many of each building you want
-var building_counts = [10, 3, 15]  # 5 of first, 3 of second, 8 of third etc, add as necessary
-
-# The final array that gets populated
-var building_data = []
-
-func populate_building_data():
-	building_data.clear()  # Clear any existing data
+# Determine which direction a building should face based on adjacent pavement
+func get_facing_direction(tile: Vector2i) -> FacingDirection:
+	# Check which side has pavement/road (where the building should face)
+	var north_tile = Vector2i(tile.x, tile.y - 1)
+	var south_tile = Vector2i(tile.x, tile.y + 1)
+	var east_tile = Vector2i(tile.x + 1, tile.y)
+	var west_tile = Vector2i(tile.x - 1, tile.y)
 	
-	for i in range(base_buildings.size()):
-		var building = base_buildings[i]
-		var count = building_counts[i]
-		
-		# Add this building 'count' number of times
-		for j in range(count):
-			building_data.append(building)
+	# Priority order: Check immediate neighbors for pavement/road
+	if pavement_tiles_array.has(south_tile) or road_tiles_array.has(south_tile):
+		return FacingDirection.SOUTH  # Face towards positive Z
+	elif pavement_tiles_array.has(north_tile) or road_tiles_array.has(north_tile):
+		return FacingDirection.NORTH  # Face towards negative Z
+	elif pavement_tiles_array.has(east_tile) or road_tiles_array.has(east_tile):
+		return FacingDirection.EAST   # Face towards positive X
+	elif pavement_tiles_array.has(west_tile) or road_tiles_array.has(west_tile):
+		return FacingDirection.WEST   # Face towards negative X
 	
-	print("Total buildings: ", building_data.size())
+	# Default to south if no adjacent pavement found
+	return FacingDirection.SOUTH
 
-
-func spawn_city_buildings():
-	populate_building_data()
-	for building in building_data:
-		print("What have we here: ",building)
-		spawn_random_building(building)
-
-
-#if not aligned to grid, check out the 3d inspector for the building and adjust in transformation tab
-func spawn_random_building(building_info: Dictionary) -> bool:
-	var building = building_info.scene.instantiate()
-	var scale_factor = 1.0
+# Check if a building can fit at the given position
+func can_place_building(start_x: int, start_z: int, width: int, height: int, direction: FacingDirection) -> bool:
+	# Adjust dimensions based on rotation (East/West swap width and height)
+	var check_width = width
+	var check_height = height
+	if direction == FacingDirection.EAST or direction == FacingDirection.WEST:
+		check_width = height
+		check_height = width
 	
-	# Building footprint in tiles
-	var height_tiles = building_info.height
-	var width_tiles = building_info.width
-	
-	# Try multiple times to find a valid position
-	var max_attempts = 50
-	for attempt in range(max_attempts):
-		var spawn_x = randi() % (grid_width - width_tiles - 1)
-		var spawn_z = randi() % (grid_height - height_tiles - 1)
-		
-		# Check if this position collides with roads/pavements
-		if is_position_valid(spawn_x, spawn_z, width_tiles, height_tiles):
-			var buildingspawnx = spawn_x * tile_size
-			var buildingspawnz = spawn_z * tile_size
-			var tile_position = Vector3(buildingspawnx, 0, buildingspawnz)
-			
-			print("Spawning at coordinates: ", tile_position)
-			building.scale = Vector3(scale_factor, 1, scale_factor)
-			building.position = tile_position
-			add_child(building)
-			return true  # Successfully spawned
-		
-		
-	# If we get here, we couldn't find a valid position
-	building.queue_free()  # Clean up the unused building instance
-	print("Could not find valid position for building after ", max_attempts, " attempts")
-	return false
-
-# Add this alongside your other tile arrays
-var non_walkable_tiles_array = []  # Populate this with non-walkable tile positions
-
-func is_position_valid(start_x: int, start_z: int, width: int, height: int) -> bool:
-	for dx in range(width+1):
-		for dz in range(height+1): #offset stops it colliding with roads + pavements, possibly due to starting at0?
+	# Check all tiles the building would occupy
+	for dx in range(check_width):
+		for dz in range(check_height):
 			var check_tile = Vector2i(start_x + dx, start_z + dz)
 			
-			# Check if this tile is a road, pavement, or non-walkable
+			# Check bounds
+			if not in_bounds(check_tile):
+				return false
+			
+			# Check if tile is already occupied
 			if (road_tiles_array.has(check_tile) or 
 				pavement_tiles_array.has(check_tile) or 
-				non_walkable_tiles_array.has(check_tile)):
+				building_tiles_array.has(check_tile)):
 				return false
 	
 	return true
+
+# Try to place a building at the given position
+func try_place_building(tile: Vector2i, direction: FacingDirection) -> bool:
+	var available_buildings = get_buildings_for_direction(direction)
+	if available_buildings.is_empty():
+		return false
+	
+	# Shuffle buildings to add variety
+	available_buildings.shuffle()
+	
+	# Try each building type to see if it fits
+	for building_info in available_buildings:
+		var width = building_info.width
+		var height = building_info.height
+		
+		# Check different positions where this building could be placed
+		# to have its door face the pavement from this tile
+		var positions_to_try = get_building_positions_to_try(tile, width, height, direction)
+		
+		for pos in positions_to_try:
+			if can_place_building(pos.x, pos.y, width, height, direction):
+				spawn_building_at_position(building_info, pos, direction)
+				return true
+	
+	return false
+
+# Get potential positions to try placing a building
+func get_building_positions_to_try(tile: Vector2i, width: int, height: int, direction: FacingDirection) -> Array[Vector2i]:
+	var positions: Array[Vector2i] = []
+	
+	# Adjust for rotation
+	var actual_width = width
+	var actual_height = height
+	if direction == FacingDirection.EAST or direction == FacingDirection.WEST:
+		actual_width = height
+		actual_height = width
+	
+	# Try different offsets to center the building or align it properly
+	match direction:
+		FacingDirection.SOUTH:
+			# Building faces south, so it should be north of the pavement
+			positions.append(Vector2i(tile.x, tile.y - actual_height +1)) #+1 here is to offset grid starting at 0
+			positions.append(Vector2i(tile.x - 1, tile.y - actual_height))
+			positions.append(Vector2i(tile.x - actual_width , tile.y - actual_height+1)) #+1 here is to offset grid starting at 0
+		FacingDirection.NORTH:
+			# Building faces north, so it should be south of the pavement
+			positions.append(tile)
+			positions.append(Vector2i(tile.x - 1, tile.y))
+			positions.append(Vector2i(tile.x - actual_width + 1, tile.y))
+		FacingDirection.EAST:
+			# Building faces east, so it should be west of the pavement
+			positions.append(Vector2i(tile.x - actual_width +1 , tile.y))  #+1 here is to offset grid starting at 0
+			positions.append(Vector2i(tile.x - actual_width, tile.y - 1))
+			positions.append(Vector2i(tile.x - actual_width, tile.y - actual_height + 1))
+		FacingDirection.WEST:
+			# Building faces west, so it should be east of the pavement
+			positions.append(tile)
+			positions.append(Vector2i(tile.x, tile.y - 1))
+			positions.append(Vector2i(tile.x, tile.y - actual_height + 1))
+	
+	return positions
+
+# Spawn a building at a specific position with rotation
+func spawn_building_at_position(building_info: Dictionary, position: Vector2i, direction: FacingDirection) -> void:
+	var building = building_info.scene.instantiate()
+	
+	# Calculate world position
+	var world_x = position.x * tile_size
+	var world_z = position.y * tile_size
+	var tile_position = Vector3(world_x, 0, world_z)
+	
+	# Apply rotation based on direction
+	#var rotation_y = 0.0
+	#match direction:
+		#FacingDirection.NORTH:
+			#rotation_y = PI  # 180 degrees
+		#FacingDirection.SOUTH:
+			#rotation_y = 0.0  # 0 degrees (default)
+		#FacingDirection.EAST:
+			#rotation_y = -PI/2  # -90 degrees
+		#FacingDirection.WEST:
+			#rotation_y = PI/2  # 90 degrees
+	
+	building.position = tile_position
+	#building.rotation.y = rotation_y
+	add_child(building)
+	
+	# Mark tiles as occupied (accounting for rotation)
+	var actual_width = building_info.width
+	var actual_height = building_info.height
+	if direction == FacingDirection.EAST or direction == FacingDirection.WEST:
+		actual_width = building_info.height
+		actual_height = building_info.width
+	
+	mark_building_area_as_occupied(position.x, position.y, actual_width, actual_height)
+	
+	print("Spawned building at ", position, " facing ", direction)
+
+# Smart building spawning that examines tiles adjacent to pavements
+func spawn_city_buildings_smart():
+	# Create a list of potential building sites (tiles adjacent to pavement but not on pavement/road)
+	var potential_sites = []
+	
+	for pavement_tile in pavement_tiles_array:
+		# Check all 4 cardinal directions from each pavement
+		var directions = [
+			Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)
+		]
+		
+		for dir in directions:
+			var adjacent_tile = pavement_tile + dir
+			
+			# Check if this tile could be a building site
+			if (in_bounds(adjacent_tile) and 
+				not road_tiles_array.has(adjacent_tile) and 
+				not pavement_tiles_array.has(adjacent_tile) and 
+				not building_tiles_array.has(adjacent_tile)):
+				
+				if not potential_sites.has(adjacent_tile):
+					potential_sites.append(adjacent_tile)
+	
+	# Shuffle for variety
+	potential_sites.shuffle()
+	
+	# Try to place buildings at potential sites
+	var buildings_placed = 0
+	var max_buildings = 20  # Adjust as needed
+	
+	for site in potential_sites:
+		if buildings_placed >= max_buildings:
+			break
+			
+		# Skip if this tile has been occupied by a previous building
+		if building_tiles_array.has(site):
+			continue
+		
+		# Determine facing direction
+		var facing = get_facing_direction(site)
+		
+		# Try to place a building
+		if try_place_building(site, facing):
+			buildings_placed += 1
+	
+	print("Placed ", buildings_placed, " buildings")
+
+# Mark all tiles that a building occupies
+func mark_building_area_as_occupied(start_x: int, start_z: int, width: int, height: int):
+	for dx in range(width):
+		for dz in range(height):
+			var occupied_tile = Vector2i(start_x + dx, start_z + dz)
+			if not building_tiles_array.has(occupied_tile):
+				building_tiles_array.append(occupied_tile)
+	
+	print("Marked building area as occupied: ", Vector2i(start_x, start_z), " size: ", width, "x", height)
+
+# Clear all buildings (for regeneration)
+func clear_all_buildings():
+	# Remove all building nodes
+	for child in get_children():
+		if child.has_method("queue_free") and child != grid:  # Don't delete the grid!
+			child.queue_free()
+	
+	# Clear the occupancy array 
+	building_tiles_array.clear()
+	
+	print("All buildings cleared, ready for respawn")
