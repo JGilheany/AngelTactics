@@ -1,10 +1,13 @@
-[gd_scene load_steps=4 format=3 uid="uid://dncdrum00tr7r"]
+[gd_scene load_steps=5 format=3 uid="uid://dncdrum00tr7r"]
 
 [ext_resource type="Script" uid="uid://d3ok7lfejjvd1" path="res://scenes/maps/city/SBlock2.gd" id="1_j558e"]
 [ext_resource type="PackedScene" uid="uid://1ck2ka3x55dl" path="res://assets/models/environment/city/building-g.fbx" id="2_7lywp"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_nle0m"]
 size = Vector3(2, 1, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_j558e"]
+size = Vector3(2.17181, 4.45844, 2.07397)
 
 [node name="Building2x4x2" type="Node3D"]
 script = ExtResource("1_j558e")
@@ -17,3 +20,11 @@ skeleton = NodePath("")
 
 [node name="building-g" parent="MeshInstance3D" instance=ExtResource("2_7lywp")]
 transform = Transform3D(-2.5, 0, -2.18557e-07, 0, 2.5, 0, 2.18557e-07, 0, -2.5, 0.0931012, -0.215512, 0.0582392)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, -5.68434e-14, 0, 1, 0, 5.68434e-14, 0, 1, -5.96046e-08, 0, 0)
+collision_layer = 12
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.46045, 2.2758, 0.538278)
+shape = SubResource("BoxShape3D_j558e")

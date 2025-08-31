@@ -64,6 +64,13 @@ camera_rotate_right={
 ]
 }
 
+[layer_names]
+
+3d_physics/layer_1="Ground"
+3d_physics/layer_2="Units"
+3d_physics/layer_3="Buildings/Obstacles"
+3d_physics/layer_4="Projectiles"
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

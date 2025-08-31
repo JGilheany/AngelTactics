@@ -39,7 +39,6 @@ func init_building_data():
 		{"scene": preload("res://scenes/maps/city/NApartment2.tscn"), "height": 2, "width": 2},
 		{"scene": preload("res://scenes/maps/city/NBlock1.tscn"), "height": 2, "width": 2},
 		{"scene": preload("res://scenes/maps/city/NBlock2.tscn"), "height": 2, "width": 2},
-	
 	]
 	
 	# Buildings that face EAST (+X direction)

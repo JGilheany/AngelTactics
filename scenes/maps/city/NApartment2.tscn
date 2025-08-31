@@ -1,10 +1,19 @@
-[gd_scene load_steps=4 format=3 uid="uid://ch6bakjg1wui4"]
+[gd_scene load_steps=7 format=3 uid="uid://ch6bakjg1wui4"]
 
 [ext_resource type="Script" uid="uid://1hamy27jkupw" path="res://scenes/maps/city/NApartment2.gd" id="1_yj30f"]
 [ext_resource type="PackedScene" uid="uid://chuj2ca6y0w50" path="res://assets/models/environment/city/building-b.fbx" id="2_cmh1o"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_nle0m"]
 size = Vector3(2, 3, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_yj30f"]
+size = Vector3(1.86984, 2.87148, 0.836184)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_cmh1o"]
+size = Vector3(1.02289, 1.75239, 1.05518)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ebusu"]
+size = Vector3(0.936466, 3.09013, 1.26215)
 
 [node name="Building2x3x2" type="Node3D"]
 script = ExtResource("1_yj30f")
@@ -17,3 +26,19 @@ skeleton = NodePath("")
 
 [node name="building-b" parent="MeshInstance3D" instance=ExtResource("2_cmh1o")]
 transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0.0146995, 0.394686, -0.102518)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, -5.68434e-14, 0, 1, 0, 5.68434e-14, 0, 1, -5.96046e-08, 0, 0)
+collision_layer = 12
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.508249, 1.67466, 0.762439)
+shape = SubResource("BoxShape3D_yj30f")
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.062683, 2.29198, -0.0409369)
+shape = SubResource("BoxShape3D_cmh1o")
+
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.00393, 1.54621, -0.287966)
+shape = SubResource("BoxShape3D_ebusu")
