@@ -2,8 +2,8 @@
 extends Node3D
 
 @export var size_x: int = 2   # tiles along X (east–west) width
-@export var floors: int = 2   # how many Y layers to block (0 = ground only => set to 1)
-@export var size_z: int = 2   # tiles along Z (north–south) height
+@export var floors: int = 3   # how many Y layers to block (0 = ground only => set to 1)
+@export var size_z: int = 5   # tiles along Z (north–south) height
 
 
 func _ready():

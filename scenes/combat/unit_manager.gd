@@ -1,149 +1,127 @@
-# Unit Manager - Handles all unit-related logic for combat
+# Unit Manager - Handles all unit-related logic for tactical combat
 class_name UnitManager
 extends RefCounted
 
-# References
+# Core references
 var combat_scene: Node3D
 var grid: Grid
 
-# UNIT MANAGEMENT: Arrays to keep track of all units in the game
-var player_units: Array[Unit] = []    # Units controlled by the player
-var enemy_units: Array[Unit] = []     # Units controlled by AI/opponent
-var all_units: Array[Unit] = []       # All units combined for easy access
+# Unit tracking arrays - maintain separate lists for easy management
+var player_units: Array[Unit] = []    # Player-controlled units
+var enemy_units: Array[Unit] = []     # AI/opponent units  
+var all_units: Array[Unit] = []       # Combined array for operations affecting all units
 
-# SELECTION SYSTEM: Track what the player has selected
-var selected_unit: Unit = null        # Currently selected unit (null = nothing selected)
-var current_team: String = "player"   # Whose turn it is
+# Selection and turn management
+var selected_unit: Unit = null        # Currently selected unit (null = none selected)
+var current_team: String = "player"   # Which team's turn it is
 
-# UNIT SCENES: Pre-load the unit scene files so we can create instances
+# Pre-loaded unit scenes for instantiation
 var warrior_scene = preload("res://scenes/units/warrior.tscn")
 var archer_scene = preload("res://scenes/units/archer.tscn") 
 var mage_scene = preload("res://scenes/units/mage.tscn")
 var hound_scene = preload("res://scenes/units/hound.tscn")
 
-# Game state enum for reference
-enum GameState { SELECTING, MOVING, ATTACKING, ENEMY_TURN }
-var game_state: GameState = GameState.SELECTING
+# Game state tracking
+enum GameState { SELECTING, MOVING, ATTACKING, ENEMY_TURN, PLACING_UNITS }
+var game_state: GameState = GameState.PLACING_UNITS
+
+# Unit placement system
+var placement_ui: Control
+var is_placement_active: bool = true
 
 func _init(combat_scene_ref: Node3D, grid_ref: Grid):
+	"""Initialize the unit manager with scene and grid references"""
 	combat_scene = combat_scene_ref
 	grid = grid_ref
 
-# UNIT SPAWNING: Create and place initial units on the battlefield
 func spawn_initial_units():
-	print("=== SPAWNING INITIAL UNITS ===")
+	"""Start interactive unit placement phase instead of automatic spawning"""
+	# Load and instantiate the placement UI
+	var placement_ui_scene = preload("res://scenes/ui/unit_placement_ui.tscn")
+	placement_ui = placement_ui_scene.instantiate()
 	
-	# SPAWN PLAYER UNITS (left side of battlefield)
-	spawn_unit_with_fallback("warrior", "player", [Vector3i(1, 0, 2), Vector3i(0, 0, 2), Vector3i(2, 0, 2), Vector3i(1, 0, 1)])
-	spawn_unit_with_fallback("archer", "player", [Vector3i(0, 0, 4), Vector3i(1, 0, 4), Vector3i(0, 0, 3), Vector3i(0, 0, 5)])
-	spawn_unit_with_fallback("mage", "player", [Vector3i(2, 0, 6), Vector3i(1, 0, 6), Vector3i(0, 0, 6), Vector3i(2, 0, 5)])
-	spawn_unit_with_fallback("warrior", "player", [Vector3i(1, 0, 8), Vector3i(0, 0, 8), Vector3i(2, 0, 8), Vector3i(1, 0, 7)])
+	# Add UI to the scene
+	combat_scene.add_child(placement_ui)
 	
-	# SPAWN ENEMY UNITS (right side of battlefield)  
-	spawn_unit_with_fallback("hound", "enemy", [Vector3i(8, 0, 2), Vector3i(9, 0, 2), Vector3i(7, 0, 2), Vector3i(8, 0, 1)])
-	spawn_unit_with_fallback("hound", "enemy", [Vector3i(9, 0, 4), Vector3i(8, 0, 4), Vector3i(9, 0, 3), Vector3i(9, 0, 5)])
-	spawn_unit_with_fallback("hound", "enemy", [Vector3i(7, 0, 6), Vector3i(8, 0, 6), Vector3i(9, 0, 6), Vector3i(7, 0, 5)])
-	spawn_unit_with_fallback("hound", "enemy", [Vector3i(8, 0, 8), Vector3i(9, 0, 8), Vector3i(7, 0, 8), Vector3i(8, 0, 7)])
+	# Connect completion signal
+	placement_ui.unit_placement_complete.connect(_on_unit_placement_complete)
 	
-	# BACKUP: If we still don't have enough units, spawn them anywhere safe
-	ensure_minimum_units()
-	
-	# CONNECT UNIT SIGNALS: Listen for when units are selected
-	connect_unit_signals()
-	print("Units spawned - Player: %d, Enemy: %d" % [player_units.size(), enemy_units.size()])
+	# Begin placement process
+	placement_ui.start_unit_placement(self, grid)
 
-# SIGNAL CONNECTIONS: Set up communication with all units
-func connect_unit_signals():
-	print("=== CONNECTING UNIT SIGNALS ===")
+func _on_unit_placement_complete():
+	"""Transition from placement phase to gameplay phase"""
+	is_placement_active = false
+	game_state = GameState.SELECTING
+
+func spawn_enemy_units():
+	"""Spawn enemy units after player placement is complete"""
+	# Define enemy spawn positions on the right side of the battlefield
+	var enemy_positions = [
+		Vector3i(8, 0, 2),
+		Vector3i(9, 0, 4), 
+		Vector3i(7, 0, 6),
+		Vector3i(8, 0, 8)
+	]
 	
+	# Spawn hounds at each position with fallback positioning
+	for pos in enemy_positions:
+		spawn_unit_with_fallback("hound", "enemy", [pos])
+
+func connect_unit_signals():
+	"""Set up signal connections for all units after spawning is complete"""
 	for unit in all_units:
 		unit.unit_selected.connect(_on_unit_selected)
 		unit.unit_died.connect(_on_unit_died)
 
-# SMART UNIT SPAWNING: Try multiple positions until we find a walkable tile
 func spawn_unit_with_fallback(unit_type: String, team: String, preferred_positions: Array[Vector3i]):
-	print("Trying to spawn ", unit_type, " (", team, ") with ", preferred_positions.size(), " fallback positions")
-	
-	# TRY EACH POSITION: Go through the list until we find one that works
+	"""Attempt to spawn a unit at preferred positions, with fallback logic for occupied tiles"""
+	# Try each preferred position in order
 	for grid_pos in preferred_positions:
 		var unit = spawn_unit(unit_type, team, grid_pos)
-		if unit:  # If spawn was successful
-			print("✓ Successfully spawned at position ", grid_pos)
+		if unit:  # Spawn succeeded
 			return unit
 	
-	# IF ALL POSITIONS FAILED: Find any walkable tile in the team's area
-	print("⚠ All preferred positions failed, searching for any walkable tile...")
+	# All preferred positions failed - find any safe position in team area
 	var backup_position = find_safe_spawn_area(team)
 	if backup_position != Vector3i(-1, 0, -1):
 		return spawn_unit(unit_type, team, backup_position)
 	else:
-		print("✗ CRITICAL ERROR: Could not find any walkable tile for ", unit_type, " (", team, ")")
+		push_error("Could not find any valid spawn position for %s (%s)" % [unit_type, team])
 		return null
 
-# AREA SEARCH: Find any walkable tile in the team's side of the battlefield
 func find_safe_spawn_area(team: String) -> Vector3i:
-	# DEFINE TEAM AREAS: Different search zones for each team
+	"""Find any walkable, unoccupied tile in the team's designated area"""
 	var search_columns: Array[int] = []
 	
+	# Define search areas by team
 	if team == "player":
 		search_columns = [0, 1, 2, 3]  # Left side of battlefield
 	else:
 		search_columns = [6, 7, 8, 9]  # Right side of battlefield
 	
-	# SEARCH SYSTEMATICALLY: Check every tile in the team's area
+	# Search systematically through the team's area
 	for x in search_columns:
 		for z in range(grid.grid_height):
 			var tile = grid.get_tile(Vector3i(x, 0, z))
 			if tile and tile.is_walkable and not tile.occupied_unit:
-				print("✓ Found safe spawn area at ", Vector3i(x, 0, z))
 				return Vector3i(x, 0, z)
 	
-	print("✗ No safe spawn area found for team ", team)
-	return Vector3i(-1, 0, -1)  # Return invalid position if nothing found
+	# No safe area found
+	return Vector3i(-1, 0, -1)
 
-# BACKUP SYSTEM: Make sure each team has at least some units
-func ensure_minimum_units():
-	var min_units_per_team = 2  # Each team should have at least 2 units
-	
-	# CHECK PLAYER UNITS: Add more if needed
-	if player_units.size() < min_units_per_team:
-		print("⚠ Player has only ", player_units.size(), " units, adding more...")
-		var needed = min_units_per_team - player_units.size()
-		for i in range(needed):
-			spawn_emergency_unit("warrior", "player")
-	
-	# CHECK ENEMY UNITS: Add more if needed  
-	if enemy_units.size() < min_units_per_team:
-		print("⚠ Enemy has only ", enemy_units.size(), " units, adding more...")
-		var needed = min_units_per_team - enemy_units.size()
-		for i in range(needed):
-			spawn_emergency_unit("warrior", "enemy")
-
-# EMERGENCY SPAWNING: Place a unit anywhere on the battlefield as last resort
-func spawn_emergency_unit(unit_type: String, team: String):
-	print("🚨 Emergency spawning ", unit_type, " for ", team)
-	
-	# SEARCH ENTIRE BATTLEFIELD: Look for any walkable tile
-	for x in range(grid.grid_width):
-		for z in range(grid.grid_height):
-			var tile = grid.get_tile(Vector3i(x, 0, z))
-			if tile and tile.is_walkable and not tile.occupied_unit:
-				print("🚨 Emergency spawn at ", Vector3i(x, 0, z))
-				return spawn_unit(unit_type, team, Vector3i(x, 0, z))
-	
-	print("🚨 CRITICAL: Cannot spawn emergency unit - no walkable tiles!")
-	return null
-
-# UNIT CREATION: Create a specific unit type at a specific position
 func spawn_unit(unit_type: String, team: String, grid_pos: Vector3i):
+	"""Create and place a specific unit type at the specified grid position"""
+	# Validate target tile
 	var target_tile = grid.get_tile(grid_pos)
 	if not target_tile or not target_tile.is_walkable: 
-		print("❌ Cannot spawn at %s - tile not walkable" % str(grid_pos))
 		return null
 	
-	var unit_instance: Unit = null
+	if target_tile.occupied_unit:
+		return null
 	
-	# Handle unit type selection
+	# Instantiate the appropriate unit scene
+	var unit_instance: Unit = null
 	match unit_type:
 		"warrior":
 			unit_instance = warrior_scene.instantiate()
@@ -154,57 +132,78 @@ func spawn_unit(unit_type: String, team: String, grid_pos: Vector3i):
 		"hound":
 			unit_instance = hound_scene.instantiate()
 		_:
-			print("❌ Unknown unit type: %s" % unit_type)
+			push_error("Unknown unit type: %s" % unit_type)
 			return null
 	
-	# Set team (though hounds should always be enemy)
+	# Configure unit properties
 	unit_instance.team = team
 	
-	# Add visual distinction for enemy units (darkening)
-	if team == "enemy" and unit_type != "hound":  # Hounds handle their own color
+	# Apply visual distinction for enemy units (except hounds which handle their own appearance)
+	if team == "enemy" and unit_type != "hound":
 		unit_instance.unit_color = unit_instance.unit_color.darkened(0.4)
 	
+	# Add to scene and position on grid
 	combat_scene.add_child(unit_instance)
 	unit_instance.place_on_tile(target_tile)
 	
-	# Add to appropriate arrays
+	# Add to tracking arrays
 	all_units.append(unit_instance)
 	if team == "player":
 		player_units.append(unit_instance)
 	else:
 		enemy_units.append(unit_instance)
 	
-	print("✓ Spawned %s (%s) at %s" % [unit_type, team, str(grid_pos)])
 	return unit_instance
 
-# UNIT SELECTION HANDLER: Called when any unit is clicked
+func handle_tile_click(tile: Tile):
+	"""Route tile clicks to appropriate handler based on game state"""
+	if is_placement_active and placement_ui:
+		# During placement, let the placement UI handle clicks
+		placement_ui.handle_tile_click(tile)
+	else:
+		# During normal gameplay, handle as movement/selection
+		handle_tile_click_gameplay(tile)
+
+func handle_tile_click_gameplay(tile: Tile):
+	"""Handle tile clicks during normal gameplay for unit movement"""
+	# Require a selected unit for movement
+	if not selected_unit:
+		return
+	
+	# Check if tile is within movement range
+	var distance = abs(tile.grid_position.x - selected_unit.grid_position.x) + abs(tile.grid_position.z - selected_unit.grid_position.z)
+	if distance > selected_unit.movement_points_remaining:
+		return
+	
+	# Execute movement
+	move_selected_unit_to_tile(tile)
+
 func _on_unit_selected(unit: Unit):
-	if unit.team != current_team: 
-		return
-	if unit.has_acted:
-		print("Unit has already acted this turn!")
-		return
+	"""Handle unit selection during gameplay"""
+	if is_placement_active:
+		return  # No selection during placement
 		
+	if unit.team != current_team: 
+		return  # Can only select own units
+		
+	if unit.has_acted:
+		return  # Unit has already acted this turn
+		
+	# Deselect previous unit if different
 	if selected_unit and selected_unit != unit:
 		selected_unit.deselect()
 		grid.clear_all_highlights()
 	
+	# Select new unit
 	selected_unit = unit
 	unit.select()
 	game_state = GameState.SELECTING
 	show_unit_options()
 
 func show_unit_options():
-	"""Show what the selected unit can do"""
+	"""Display available actions for the selected unit and highlight valid targets"""
 	if not selected_unit:
 		return
-		
-	print("\n=== %s SELECTED ===" % selected_unit.unit_name)
-	print("Health: %d/%d" % [selected_unit.current_health, selected_unit.max_health])
-	print("Actions available:")
-	print("1. MOVE (click tile)")
-	print("2. ATTACK (click enemy)")
-	print("3. END TURN (press SPACE)")
 	
 	# Highlight movement options
 	grid.highlight_walkable_tiles(selected_unit.grid_position, selected_unit.movement_points_remaining)
@@ -213,13 +212,13 @@ func show_unit_options():
 	highlight_attack_targets()
 
 func highlight_attack_targets():
-	"""Highlight enemies within attack range"""
+	"""Add visual highlighting to enemies within attack range"""
 	if not selected_unit:
 		return
 		
 	var targets = get_units_in_attack_range(selected_unit)
 	for target in targets:
-		# Add red glow to attackable enemies
+		# Apply red highlighting to attackable enemies
 		if target.mesh_instance:
 			var attack_material = StandardMaterial3D.new()
 			attack_material.albedo_color = Color.RED
@@ -228,7 +227,7 @@ func highlight_attack_targets():
 			target.mesh_instance.material_override = attack_material
 
 func get_units_in_attack_range(attacker: Unit) -> Array[Unit]:
-	"""Get all enemy units within attack range"""
+	"""Get all enemy units within the attacker's range"""
 	var targets: Array[Unit] = []
 	var enemy_list = enemy_units if attacker.team == "player" else player_units
 	
@@ -238,42 +237,22 @@ func get_units_in_attack_range(attacker: Unit) -> Array[Unit]:
 	
 	return targets
 
-# MOVEMENT VISUALIZATION: Show where the selected unit can move
-func show_unit_movement_options(unit: Unit):
-	print("=== SHOWING MOVEMENT OPTIONS ===")
-	print("Unit at ", unit.grid_position, " has movement range: ", unit.movement_range)
-	
-	# Use the grid's highlighting system to show movement range
-	grid.highlight_walkable_tiles(unit.grid_position, unit.movement_range)
-	
-	print("✓ Movement options displayed")
-
-# UNIT MOVEMENT: Move the currently selected unit to a target tile
 func move_selected_unit_to_tile(target_tile: Tile):
+	"""Move the currently selected unit to the specified tile"""
 	if not selected_unit:
-		print("✗ ERROR: No unit selected for movement")
 		return
 	
-	print("=== MOVING UNIT ===")
-	print("Moving ", selected_unit.unit_name, " to ", target_tile.grid_position)
-	
-	# Perform the actual movement
+	# Attempt movement
 	var success = selected_unit.move_to_tile(target_tile)
 	
 	if success:
-		print("✓ Movement successful!")
-		
-		# CLEAN UP AFTER MOVEMENT: Clear highlights and deselect
+		# Clean up UI state after successful movement
 		grid.clear_all_highlights()
 		selected_unit.deselect()
 		selected_unit = null
-		
-		print("✓ Unit deselected and highlights cleared")
-	else:
-		print("✗ Movement failed!")
 
 func end_unit_action():
-	"""Clean up after unit action"""
+	"""Clean up UI state after any unit action"""
 	grid.clear_all_highlights()
 	clear_attack_highlights()
 	if selected_unit:
@@ -282,85 +261,62 @@ func end_unit_action():
 	game_state = GameState.SELECTING
 
 func clear_attack_highlights():
-	"""Remove red attack highlighting from enemies"""
+	"""Remove attack highlighting from all units"""
 	for unit in all_units:
 		if unit.team != current_team:
-			# Restore original material
-			unit.setup_visual()  # This resets to default material
+			# Restore original visual appearance
+			unit.setup_visual()
 
 func handle_unit_click(unit: Unit):
-	"""Handle clicking on units - either select or attack"""
+	"""Handle clicking on units - either select friendly or attack enemy"""
+	if is_placement_active:
+		return  # No unit interaction during placement
+		
 	if unit.team == current_team:
 		# Select friendly unit
 		_on_unit_selected(unit)
 	else:
-		# Attack enemy unit
+		# Attempt to attack enemy unit
 		if selected_unit and selected_unit.can_attack_target(unit):
 			selected_unit.attack_unit(unit)
 			end_unit_action()
-		else:
-			print("Cannot attack that target!")
-
-func handle_tile_click(tile: Tile):
-	"""Handle tile selection for unit movement"""
-	print("=== TILE CLICKED ===")
-	print("Tile position: ", tile.grid_position)
-	
-	# CHECK IF WE HAVE A SELECTED UNIT: Only proceed if a unit is selected
-	if not selected_unit:
-		print("✗ No unit selected")
-		return
-	
-	# CHECK MOVEMENT RANGE: Is the tile within the unit's movement range?
-	var distance = abs(tile.grid_position.x - selected_unit.grid_position.x) + abs(tile.grid_position.z - selected_unit.grid_position.z)
-	if distance > selected_unit.movement_points_remaining:
-		print("✗ Cannot move to ", tile.grid_position, " - too far (distance: ", distance, ", range: ", selected_unit.movement_range, ")")
-		return
-	
-	# PERFORM MOVEMENT: Move the selected unit to the clicked tile
-	print("✓ Moving ", selected_unit.unit_name, " from ", selected_unit.grid_position, " to ", tile.grid_position)
-	move_selected_unit_to_tile(tile)
 
 func end_turn():
-	"""End current player's turn"""
-	print("\n=== ENDING %s TURN ===" % current_team.to_upper())
+	"""End current player's turn and switch to the other team"""
+	if is_placement_active:
+		return  # Can't end turn during placement
 	
-	# Reset all units for next turn
+	# Reset all units for the ending team
 	var current_units = player_units if current_team == "player" else enemy_units
 	for unit in current_units:
 		unit.reset_turn()
 	
-	# Switch teams
+	# Switch active team
 	current_team = "enemy" if current_team == "player" else "player"
 	
-	# Clear selections
+	# Clear UI state
 	if selected_unit:
 		selected_unit.deselect()
 	selected_unit = null
 	grid.clear_all_highlights()
 	clear_attack_highlights()
 	
-	print("=== %s TURN BEGINS ===" % current_team.to_upper())
-	
-	# Check win conditions
+	# Check for victory conditions
 	check_victory_conditions()
 
 func check_victory_conditions():
-	"""Check if game is over"""
+	"""Check if either team has won the battle"""
 	if player_units.is_empty():
-		print("ENEMY WINS!")
 		combat_scene.get_tree().paused = true
+		# Could emit a signal here for game over UI
 	elif enemy_units.is_empty():
-		print("PLAYER WINS!")
 		combat_scene.get_tree().paused = true
+		# Could emit a signal here for victory UI
 
-# Handle when a unit dies:
 func _on_unit_died(unit: Unit):
-	"""Handle when a unit dies"""
+	"""Handle unit death - remove from all tracking arrays"""
 	all_units.erase(unit)
 	if unit.team == "player":
 		player_units.erase(unit)
 	else:
 		enemy_units.erase(unit)
-	
-	print("Unit removed from game: %s" % unit.unit_name)

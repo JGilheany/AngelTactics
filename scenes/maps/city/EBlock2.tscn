@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://b1n8sd1kk1xbt"]
+
+[ext_resource type="Script" uid="uid://bkjqnf38mxxlq" path="res://scenes/maps/city/EBlock2.gd" id="1_0fbcp"]
+[ext_resource type="PackedScene" uid="uid://dc7kel7yuwhck" path="res://assets/models/environment/city/building-h.fbx" id="2_ornwj"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_nle0m"]
+size = Vector3(2, 1, 2)
+
+[node name="Building2x3x2" type="Node3D"]
+script = ExtResource("1_0fbcp")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.5, 0.5)
+layers = 0
+mesh = SubResource("BoxMesh_nle0m")
+skeleton = NodePath("")
+
+[node name="building-h" parent="." instance=ExtResource("2_ornwj")]
+transform = Transform3D(-1.09278e-07, 0, -2.5, 0, 2.5, 0, 2.5, 0, -1.09278e-07, 0.56757, 0, 0.46458)

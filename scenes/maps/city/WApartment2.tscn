@@ -16,4 +16,4 @@ mesh = SubResource("BoxMesh_nle0m")
 skeleton = NodePath("")
 
 [node name="building-b" parent="MeshInstance3D" instance=ExtResource("2_pbtp2")]
-transform = Transform3D(1.07324e-08, 0, 0.9, 0, 0.9, 0, -0.9, 0, 1.07324e-08, 0.0756435, 0.407102, 0.0613305)
+transform = Transform3D(1.07324e-08, 0, 0.9, 0, 0.9, 0, -0.9, 0, 1.07324e-08, 0.0281281, 0.412808, 0.00879838)

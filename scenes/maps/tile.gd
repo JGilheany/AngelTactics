@@ -73,8 +73,7 @@ func setup_materials():
 	
 	# Blocked material - for permanently impassable terrain
 	blocked_material = StandardMaterial3D.new()
-	blocked_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	blocked_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA  # Enable transparency
+	blocked_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA # Enable transparency
 	blocked_material.albedo_color = Color(1.0, 1.0, 1.0, 0.1)  # White with 50% opacity, same as default
 	#if want blocked tiles to be red, uncomment the below code
 	#blocked_material.albedo_color = Color(1.0, 0.0, 0.0, 0.8)  # Red with 80% opacity (more visible)
@@ -187,4 +186,12 @@ func update_appearance():
 	
 	# 3. DEFAULT: Show white (normal walkable tile)
 	mesh_instance.material_override = default_material
-	
+
+#for unit spawning
+func highlight_for_placement():
+	# Add a blue/green highlight for valid placement tiles
+	if mesh_instance and mesh_instance.get_surface_override_material(0):
+		var material = mesh_instance.get_surface_override_material(0).duplicate()
+		material.emission = Color.CYAN * 0.3
+		material.emission_enabled = true
+		mesh_instance.set_surface_override_material(0, material)

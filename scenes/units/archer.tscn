@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://bkcy3uiddoano"]
 
 [ext_resource type="PackedScene" uid="uid://camml0x50uxr3" path="res://scenes/units/unit.tscn" id="1_5ijr0"]
-[ext_resource type="Script" uid="uid://cddntjjl71gqj" path="res://scripts/units/archer.gd" id="2_p10bi"]
+[ext_resource type="Script" uid="uid://cddntjjl71gqj" path="res://scenes/units/archer.gd" id="2_p10bi"]
 
 [node name="Unit" instance=ExtResource("1_5ijr0")]
 script = ExtResource("2_p10bi")

@@ -1,0 +1,31 @@
+[gd_scene load_steps=2 format=3 uid="uid://t6apulpsr2ea"]
+
+[ext_resource type="Script" uid="uid://bvb3cn0lk6xyj" path="res://scenes/ui/unit_placement_ui.gd" id="1_fg0ja"]
+
+[node name="UnitPlacementUi" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_fg0ja")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 253.0
+offset_bottom = 58.0
+
+[node name="InstructionLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="UnitButtonsContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="WarriorButton" type="Button" parent="VBoxContainer/UnitButtonsContainer"]
+layout_mode = 2
+text = "Warrior (2)"
+
+[node name="ArcherButton" type="Button" parent="VBoxContainer/UnitButtonsContainer"]
+layout_mode = 2
+text = "Archer (1)"
+
+[node name="MageButton" type="Button" parent="VBoxContainer/UnitButtonsContainer"]
+layout_mode = 2
+text = "Mage(1)"

@@ -9,7 +9,7 @@ class_name Grid
 signal tile_selected(tile)
 
 # EXPORTED VARIABLES:
-@export var grid_width: int = 20     # How many tiles wide the grid is
+@export var grid_width: int = 20    # How many tiles wide the grid is
 @export var grid_height: int = 20  # How many tiles tall the grid is  
 @export var grid_depth: int = 5  # number of vertical layers
 @export var tile_size: float = 1.0    # Size of each tile in world units (1.0 = 1 meter)
@@ -22,12 +22,16 @@ var current_layer: int = 0
 # Pre-loads the Tile scene file so we can create instances of it
 # preload() happens at compile time - more efficient than load()
 var tile_scene = preload("res://scenes/maps/tile.tscn")
-
 #background plane
 @onready var background_plane = $BackgroundPlane
 # Reference to the "Tiles" child node that will hold all our tile instances
 @onready var tiles_container = $Tiles
-@onready var building_spawner = CitySpawner.new()
+
+
+
+var current_tileset = CitySpawner.new()
+
+@onready var building_spawner = current_tileset
 
 # _ready() runs once when this Grid is added to the scene
 func _ready():

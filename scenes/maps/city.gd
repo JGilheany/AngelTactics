@@ -24,30 +24,37 @@ var buildings_facing_west = []   # Door faces -X
 
 # Initialize building data for each direction
 func init_building_data():
-	# These are your base buildings - you'll need to organize them by their intended facing
-	# For now, I'm using the same buildings for each direction as an example
-	# You should replace these with your actual oriented building scenes
+	# Organise buildings by their intended facing
+
 	
 	# Buildings that face SOUTH (+Z direction)
 	buildings_facing_south = [
 		{"scene": preload("res://scenes/maps/city/SApartment1.tscn"), "height": 2, "width": 2},
+		{"scene": preload("res://scenes/maps/city/SBlock1.tscn"), "height": 3, "width": 5},
+		{"scene": preload("res://scenes/maps/city/SBlock2.tscn"), "height": 2, "width": 2}
 		]
 	
 	# Buildings that face NORTH (-Z direction)
 	buildings_facing_north = [
-		{"scene": preload("res://scenes/maps/city/NApartment2.tscn"), "height": 2, "width": 2}
+		{"scene": preload("res://scenes/maps/city/NApartment2.tscn"), "height": 2, "width": 2},
+		{"scene": preload("res://scenes/maps/city/NBlock1.tscn"), "height": 2, "width": 2},
+		{"scene": preload("res://scenes/maps/city/NBlock2.tscn"), "height": 2, "width": 2},
 	
 	]
 	
 	# Buildings that face EAST (+X direction)
 	buildings_facing_east = [
-		{"scene": preload("res://scenes/maps/city/EApartment2.tscn"), "height": 2, "width": 2}
+		{"scene": preload("res://scenes/maps/city/EBlock2.tscn"), "height": 2, "width": 2},
+		{"scene": preload("res://scenes/maps/city/EBlock1.tscn"), "height": 5, "width": 2},
+		{"scene": preload("res://scenes/maps/city/EApartment2.tscn"), "height": 2, "width": 2},
+	
 	]
 	
 	# Buildings that face WEST (-X direction)
 	buildings_facing_west = [
 		{"scene": preload("res://scenes/maps/city/WApartment2.tscn"), "height": 2, "width": 2},
-		{"scene": preload("res://scenes/maps/city/WBlock1.tscn"), "height": 2, "width": 2}
+		{"scene": preload("res://scenes/maps/city/WBlock1.tscn"), "height": 2, "width": 2},
+		{"scene": preload("res://scenes/maps/city/WBlock2.tscn"), "height": 2, "width": 2}
 	]
 
 func _ready():
@@ -192,7 +199,7 @@ func get_facing_direction(tile: Vector2i) -> FacingDirection:
 		return FacingDirection.WEST   # Face towards negative X
 	
 	# Default to south if no adjacent pavement found
-	return FacingDirection.SOUTH
+	return FacingDirection.NORTH
 
 # Check if a building can fit at the given position
 func can_place_building(start_x: int, start_z: int, width: int, height: int, direction: FacingDirection) -> bool:
@@ -200,8 +207,8 @@ func can_place_building(start_x: int, start_z: int, width: int, height: int, dir
 	var check_width = width
 	var check_height = height
 	if direction == FacingDirection.EAST or direction == FacingDirection.WEST:
-		check_width = height
-		check_height = width
+		check_width = width
+		check_height = height
 	
 	# Check all tiles the building would occupy
 	for dx in range(check_width):

@@ -10,7 +10,7 @@ size = Vector3(2, 3, 2)
 script = ExtResource("1_txwht")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1.5, 0.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1.5, 0.59252)
 layers = 0
 mesh = SubResource("BoxMesh_nle0m")
 skeleton = NodePath("")
