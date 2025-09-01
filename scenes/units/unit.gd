@@ -9,7 +9,8 @@ signal unit_moved(unit, from_tile, to_tile)
 signal unit_died(unit)
 signal unit_turn_started(unit)
 signal unit_turn_ended(unit)
-
+signal mouse_entered(unit)
+signal mouse_exited(unit)
 
 # =============================================
 # UNIT STATS - Designer can change these in Inspector
@@ -164,18 +165,20 @@ func _on_area_input_event(_camera, event, _click_position, _click_normal, _shape
 
 # Mouse hover effects (visual feedback)
 func _on_unit_mouse_entered():
+	mouse_entered.emit(self)  # Emit signal for UnitManager to catch
+	
 	if not is_selected:
 		# Make unit slightly brighter when mouse hovers over it
 		mesh_instance.material_override = selected_material.duplicate()
 		var hover_material = mesh_instance.material_override
 		hover_material.albedo_color = unit_color.lightened(0.1)
-		#print("Mouse entered ", unit_name)
 
 func _on_unit_mouse_exited():
+	mouse_exited.emit(self)  # Emit signal for UnitManager to catch
+	
 	if not is_selected:
 		# Return to normal color when mouse leaves
 		mesh_instance.material_override = default_material
-		#print("Mouse exited ", unit_name)
 
 # Centralized selection handler
 func handle_unit_selection():
@@ -302,6 +305,9 @@ func deselect():
 	mesh_instance.material_override = default_material  # Return to normal color
 	if selection_indicator:
 		selection_indicator.visible = false             # Hide selection ring
+
+
+
 
 # =============================================
 # COMBAT SYSTEM - Handle damage, healing, and death

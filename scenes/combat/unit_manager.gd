@@ -143,7 +143,7 @@ func setup_line_mesh(line_visual: MeshInstance3D, start_pos: Vector3, end_pos: V
 	print("  Direction: ", direction)
 	
 	# Set up thin line mesh
-	mesh.size = Vector3(0.1, 0.1, distance)  # Made thicker for visibility
+	mesh.size = Vector3(0.01, 0.01, distance)  # Made thicker for visibility
 	line_visual.mesh = mesh
 	
 	print("  Mesh assigned, setting position...")
@@ -227,6 +227,76 @@ func highlight_attack_targets():
 				enemy.mesh_instance.material_override = blocked_material
 			# Units out of range get no highlighting
 
+func _on_unit_mouse_entered(unit: Unit):
+	"""Show targeting line when hovering over a unit"""
+	if not selected_unit or unit.team == current_team or is_placement_active:
+		return
+	
+	# Only show line if this unit is a potential target
+	if selected_unit.can_attack_target(unit):
+		var los_result = can_attack_with_line_of_sight(selected_unit, unit)
+		show_line_of_sight_preview(selected_unit, unit, los_result.can_attack, los_result.hit_point)
+
+func _on_unit_mouse_exited(_unit: Unit):
+	"""Hide targeting line when mouse leaves unit"""
+	clear_line_of_sight_preview()
+
+func show_line_of_sight_preview(attacker: Unit, target: Unit, is_clear: bool, hit_point: Vector3 = Vector3.ZERO):
+	"""Create a preview line for hover targeting (different from attack line)"""
+	# Clear any existing preview lines
+	clear_line_of_sight_preview()
+	
+	var start_pos = attacker.global_position + Vector3(0, 0.5, 0)
+	var end_pos = target.global_position + Vector3(0, 0.5, 0)
+	
+	# If blocked, draw line only to the blocking point
+	if not is_clear and hit_point != Vector3.ZERO:
+		end_pos = hit_point
+	
+	# Create preview line visual
+	var line_visual = MeshInstance3D.new()
+	combat_scene.add_child(line_visual)
+	line_visual.add_to_group("los_preview_indicators")  # Different group for preview
+	
+	# Configure the preview line (slightly different styling)
+	setup_preview_line_mesh(line_visual, start_pos, end_pos, is_clear)
+
+func setup_preview_line_mesh(line_visual: MeshInstance3D, start_pos: Vector3, end_pos: Vector3, is_clear: bool):
+	"""Configure a preview line mesh (thinner and more transparent than attack lines)"""
+	var mesh = BoxMesh.new()
+	
+	# Calculate line properties
+	var direction = end_pos - start_pos
+	var distance = direction.length()
+	var midpoint = start_pos + direction * 0.5
+	
+	# Set up thinner preview line
+	mesh.size = Vector3(0.05, 0.05, distance)  # Thinner than attack line
+	line_visual.mesh = mesh
+	
+	# Position and orient the line
+	line_visual.global_position = midpoint
+	line_visual.look_at(end_pos, Vector3.UP)
+	
+	# Set color with transparency for preview
+	var material = StandardMaterial3D.new()
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	if is_clear:
+		material.albedo_color = Color(0, 1, 0, 0.6)  # Semi-transparent green
+		material.emission = Color.GREEN * 0.2
+	else:
+		material.albedo_color = Color(1, 0, 0, 0.6)  # Semi-transparent red
+		material.emission = Color.RED * 0.2
+	material.emission_enabled = true
+	line_visual.material_override = material
+
+func clear_line_of_sight_preview():
+	"""Remove preview line indicators"""
+	var indicators = combat_scene.get_tree().get_nodes_in_group("los_preview_indicators")
+	for indicator in indicators:
+		if is_instance_valid(indicator):
+			indicator.queue_free()
+
 # Modified handle_unit_click to use line of sight
 func handle_unit_click(unit: Unit):
 	"""Handle clicking on units - either select or attack with line of sight check"""
@@ -285,6 +355,9 @@ func spawn_initial_units():
 	
 	# Begin placement process
 	placement_ui.start_unit_placement(self, grid)
+	
+	#connects LoS highlight functions from unit.gd
+	connect_unit_signals()
 
 func _on_unit_placement_complete():
 	"""Transition from placement phase to gameplay phase"""
@@ -310,6 +383,9 @@ func connect_unit_signals():
 	for unit in all_units:
 		unit.unit_selected.connect(_on_unit_selected)
 		unit.unit_died.connect(_on_unit_died)
+		# Connect hover signals for targeting preview
+		unit.mouse_entered.connect(_on_unit_mouse_entered)
+		unit.mouse_exited.connect(_on_unit_mouse_exited)
 
 func spawn_unit_with_fallback(unit_type: String, team: String, preferred_positions: Array[Vector3i]):
 	"""Attempt to spawn a unit at preferred positions, with fallback logic for occupied tiles"""
@@ -431,6 +507,7 @@ func _on_unit_selected(unit: Unit):
 		selected_unit.deselect()
 		grid.clear_all_highlights()
 		clear_line_of_sight_visuals()  # Clear any existing line visuals
+		clear_line_of_sight_preview()  # Clear any hover preview lines
 	
 	# Select new unit
 	selected_unit = unit
@@ -480,6 +557,7 @@ func end_unit_action():
 	grid.clear_all_highlights()
 	clear_attack_highlights()
 	clear_line_of_sight_visuals()
+	clear_line_of_sight_preview()  # Clear hover previews too
 	if selected_unit:
 		selected_unit.deselect()
 	selected_unit = null
