@@ -14,6 +14,8 @@ var all_units: Array[Unit] = []       # Combined array for operations affecting 
 # Selection and turn management
 var selected_unit: Unit = null        # Currently selected unit (null = none selected)
 var current_team: String = "player"   # Which team's turn it is
+var game_over: bool = false
+var winning_team: String = ""
 
 # Pre-loaded unit scenes for instantiation
 var warrior_scene = preload("res://scenes/units/warrior.tscn")
@@ -570,6 +572,7 @@ func clear_attack_highlights():
 			# Restore original visual appearance
 			unit.setup_visual()
 
+# Modified existing end_turn method to handle AI properly
 func end_turn():
 	"""End current player's turn and switch to the other team"""
 	if is_placement_active:
@@ -580,9 +583,6 @@ func end_turn():
 	for unit in current_units:
 		unit.reset_turn()
 	
-	# Switch active team
-	current_team = "enemy" if current_team == "player" else "player"
-	
 	# Clear UI state
 	if selected_unit:
 		selected_unit.deselect()
@@ -591,17 +591,57 @@ func end_turn():
 	clear_attack_highlights()
 	clear_line_of_sight_visuals()
 	
+	# Switch teams
+	if current_team == "player":
+		current_team = "enemy"
+		game_state = GameState.ENEMY_TURN
+		# Start AI processing
+		start_enemy_turn()
+	else:
+		current_team = "player" 
+		game_state = GameState.SELECTING
+	
 	# Check for victory conditions
 	check_victory_conditions()
 
 func check_victory_conditions():
 	"""Check if either team has won the battle"""
+	if game_over:
+		return  # Game already ended, don't check again
+	
 	if player_units.is_empty():
+		game_over = true
+		winning_team = "enemy"
+		print("=== GAME OVER ===")
+		print("ENEMY TEAM WINS!")
+		print("All player units have been eliminated.")
+		print("Final unit count - Player: 0, Enemy: %d" % enemy_units.size())
 		combat_scene.get_tree().paused = true
-		# Could emit a signal here for game over UI
 	elif enemy_units.is_empty():
+		game_over = true
+		winning_team = "player"
+		print("=== GAME OVER ===")
+		print("PLAYER TEAM WINS!")
+		print("All enemy units have been eliminated.")
+		print("Final unit count - Player: %d, Enemy: 0" % player_units.size())
 		combat_scene.get_tree().paused = true
-		# Could emit a signal here for victory UI
+
+
+func is_game_over() -> bool:
+	"""Check if the game has ended"""
+	return game_over
+
+func get_winning_team() -> String:
+	"""Get the team that won (empty string if game not over)"""
+	return winning_team if game_over else ""
+
+# Use if you want to reset the game state later:
+func reset_game_over_state():
+	"""Reset the game over flags (useful for restarting)"""
+	game_over = false
+	winning_team = ""
+	combat_scene.get_tree().paused = false
+
 
 func _on_unit_died(unit: Unit):
 	"""Handle unit death - remove from all tracking arrays"""
@@ -610,3 +650,82 @@ func _on_unit_died(unit: Unit):
 		player_units.erase(unit)
 	else:
 		enemy_units.erase(unit)
+
+
+
+# AI Turn Management
+var ai_units_pending: Array[Unit] = []
+var current_ai_unit: Unit = null
+
+func get_unit_manager():
+	"""Helper method for units to get reference to this manager"""
+	return self
+
+func start_enemy_turn():
+	"""Begin the enemy team's turn - process all AI units"""
+	print("=== STARTING ENEMY AI TURN ===")
+	
+	# Collect all AI units that can act
+	ai_units_pending.clear()
+	current_ai_unit = null
+	
+	for unit in enemy_units:
+		if unit.has_method("can_act") and unit.can_act():
+			ai_units_pending.append(unit)
+	
+	print("AI units ready to act: %d" % ai_units_pending.size())
+	
+	# Start processing AI units
+	process_next_ai_unit()
+
+func process_next_ai_unit():
+	"""Process the next AI unit in the queue"""
+	if ai_units_pending.is_empty():
+		print("All AI units finished - ending enemy turn")
+		end_enemy_turn()
+		return
+	
+	# Get next AI unit
+	current_ai_unit = ai_units_pending.pop_front()
+	
+	print("Processing AI unit: %s" % current_ai_unit.unit_name)
+	
+	# Start the AI unit's turn
+	if current_ai_unit.has_method("start_ai_turn"):
+		current_ai_unit.start_ai_turn()
+	else:
+		# Fallback for non-AI units
+		print("Unit %s has no AI - skipping" % current_ai_unit.unit_name)
+		process_next_ai_unit()
+
+func on_ai_unit_finished(ai_unit: Unit):
+	"""Called by AI units when they finish their turn"""
+	print("AI unit finished: %s" % ai_unit.unit_name)
+	
+	# Brief delay before next unit to give player time to see what happened
+	var delay_timer = Timer.new()
+	delay_timer.wait_time = 0.5
+	delay_timer.one_shot = true
+	delay_timer.timeout.connect(func():
+		delay_timer.queue_free()
+		process_next_ai_unit()
+	)
+	combat_scene.add_child(delay_timer)  # Use combat_scene instead of self
+	delay_timer.start()
+
+func end_enemy_turn():
+	"""Clean up after enemy turn and return control to player"""
+	print("=== ENEMY TURN COMPLETE ===")
+	
+	# Reset enemy units for next turn
+	for unit in enemy_units:
+		unit.reset_turn()
+	
+	# Switch back to player turn
+	current_team = "player"
+	game_state = GameState.SELECTING
+	
+	# Clear any remaining visual effects
+	clear_line_of_sight_visuals()
+	clear_line_of_sight_preview()
+	# Check for victory conditions

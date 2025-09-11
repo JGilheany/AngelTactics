@@ -16,6 +16,8 @@ var camera_speed: float = 15.0
 var camera_rig_position: Vector3
 var zoom_level: float = 10.0
 
+
+
 # Camera zoom settings
 var zoom_distance := 10.0
 var min_zoom := 5.0
@@ -296,3 +298,9 @@ func update_camera_rotation(delta: float):
 	else:
 		# Smooth interpolation toward target
 		camera_rig.rotation.y = lerp(current_yaw, target_yaw, rotation_speed * delta)
+
+
+
+func get_unit_manager() -> UnitManager:
+	"""Provide access to UnitManager for units"""
+	return unit_manager
