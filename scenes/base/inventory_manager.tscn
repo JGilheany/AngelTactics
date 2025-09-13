@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=3 uid="uid://dbj2e4aapptnr"]
+
+[ext_resource type="Script" uid="uid://dld2n6pi6smik" path="res://scenes/base/inventory_manager.gd" id="1_mjida"]
+
+[node name="InventoryManager" type="Node"]
+script = ExtResource("1_mjida")
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 30.0
+autostart = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

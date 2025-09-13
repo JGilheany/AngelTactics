@@ -1,6 +1,7 @@
 extends Control
 
 @onready var city_button = $VBoxContainer/CityButton
+@onready var base_button = $VBoxContainer/BaseButton
 @onready var forest_button = $VBoxContainer/ForestButton
 @onready var desert_button = $VBoxContainer/DesertButton
 @onready var mountain_button = $VBoxContainer/MountainButton
@@ -9,6 +10,7 @@ extends Control
 func _ready():
 	# Connect button signals
 	city_button.pressed.connect(_on_city_button_pressed)
+	base_button.pressed.connect(_on_city_button_pressed)
 	forest_button.pressed.connect(_on_forest_button_pressed)
 	desert_button.pressed.connect(_on_desert_button_pressed)
 	mountain_button.pressed.connect(_on_mountain_button_pressed)
@@ -18,6 +20,8 @@ func _ready():
 	city_button.grab_focus()
 	
 	# Disable placeholder buttons (optional visual feedback)
+	city_button.disabled = false
+	base_button.disabled = true
 	forest_button.disabled = true
 	desert_button.disabled = true
 	mountain_button.disabled = true
@@ -25,6 +29,10 @@ func _ready():
 func _on_city_button_pressed():
 	# Load the combat scene (your current game)
 	get_tree().change_scene_to_file("res://scenes/combat/combatscene.tscn")
+
+func _on_base_button_pressed():
+	# Placeholder - you can implement different maps later
+	print("Base not yet implemented")
 
 func _on_forest_button_pressed():
 	# Placeholder - you can implement different maps later

@@ -20,6 +20,10 @@ offset_bottom = 40.0
 layout_mode = 2
 text = "City"
 
+[node name="BaseButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Base (TBD)"
+
 [node name="ForestButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
 text = "Forest (TBD)"

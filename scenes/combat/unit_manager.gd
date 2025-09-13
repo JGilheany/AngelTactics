@@ -18,10 +18,11 @@ var game_over: bool = false
 var winning_team: String = ""
 
 # Pre-loaded unit scenes for instantiation
-var warrior_scene = preload("res://scenes/units/warrior.tscn")
-var archer_scene = preload("res://scenes/units/archer.tscn") 
-var mage_scene = preload("res://scenes/units/mage.tscn")
+var assassin_scene = preload("res://scenes/units/assassin.tscn")
 var hound_scene = preload("res://scenes/units/hound.tscn")
+# Add more as they are created eg:
+# var sniper_scene = preload("res://scenes/units/sniper.tscn")
+# var heavy_scene = preload("res://scenes/units/heavy.tscn")
 
 # Game state tracking
 enum GameState { SELECTING, MOVING, ATTACKING, ENEMY_TURN, PLACING_UNITS }
@@ -40,55 +41,56 @@ const LOS_HEIGHT_OFFSET = 1.0  # How high above ground to cast the ray
 const LOS_COLLISION_MASK = 4   # Layer 3 (buildings/obstacles) = 2^2 = 4
 
 func can_attack_with_line_of_sight(attacker: Unit, target: Unit) -> Dictionary:
-	"""
-	Check if attacker can attack target considering both range and line of sight
-	Returns a dictionary with 'can_attack' bool and 'blocked_by' info
-	"""
+	"""Updated to use weapon-specific range and accuracy"""
 	var result = {
 		"can_attack": false,
 		"blocked_by": null,
 		"hit_point": Vector3.ZERO,
-		"block_percentage": 0.0  # For future partial cover system
+		"accuracy_modifier": 0
 	}
 	
-	# First check if target is in attack range (existing logic)
+	# Check if attacker has weapons and can attack
 	if not attacker.can_attack_target(target):
-		return result  # Out of range
+		return result
 	
-	# Get world positions with height offset for realistic line of sight
+	var weapon = attacker.get_active_weapon()
+	if not weapon:
+		return result
+	
+	# Get positions for line of sight check
 	var attacker_pos = attacker.global_position + Vector3(0, LOS_HEIGHT_OFFSET, 0)
 	var target_pos = target.global_position + Vector3(0, LOS_HEIGHT_OFFSET, 0)
 	
-	# Cast ray from attacker to target
+	# Cast ray for line of sight
 	var space_state = combat_scene.get_world_3d().direct_space_state
 	var query = PhysicsRayQueryParameters3D.create(attacker_pos, target_pos)
-	
-	# Only check for obstacles/buildings (Layer 3)
 	query.collision_mask = LOS_COLLISION_MASK
 	
-	# Exclude the attacker and target from collision
-	var attacker_body = attacker.get_node_or_null("StaticBody3D")
-	var target_body = target.get_node_or_null("StaticBody3D")
-	
-	if attacker_body:
-		query.exclude.append(attacker_body.get_rid())
-	if target_body:
-		query.exclude.append(target_body.get_rid())
+	# Exclude the units themselves
+	if attacker.static_body:
+		query.exclude.append(attacker.static_body.get_rid())
+	if target.static_body:
+		query.exclude.append(target.static_body.get_rid())
 	
 	var ray_result = space_state.intersect_ray(query)
 	
+	# Calculate distance for range-based modifiers
+	var distance = abs(target.grid_position.x - attacker.grid_position.x) + abs(target.grid_position.z - attacker.grid_position.z)
+	
 	if ray_result.is_empty():
-		# No obstacles in the way
+		# Clear line of sight
 		result.can_attack = true
+		# Apply weapon-specific accuracy modifiers
+		result.accuracy_modifier = weapon.calculate_accuracy_bonus(attacker, target, distance)
 	else:
-		# Something is blocking the shot
+		# Blocked line of sight
 		result.blocked_by = ray_result.collider
 		result.hit_point = ray_result.position
 		
-		# For future enhancement: calculate partial cover percentage
-		var total_distance = attacker_pos.distance_to(target_pos)
-		var blocked_distance = attacker_pos.distance_to(ray_result.position)
-		result.block_percentage = (blocked_distance / total_distance) * 100.0
+		# Smart weapons can ignore some cover
+		if weapon.has_tag("smart"):
+			result.can_attack = true
+			result.accuracy_modifier = weapon.calculate_accuracy_bonus(attacker, target, distance) - 10  # Partial cover penalty
 	
 	return result
 
@@ -426,39 +428,38 @@ func find_safe_spawn_area(team: String) -> Vector3i:
 	return Vector3i(-1, 0, -1)
 
 func spawn_unit(unit_type: String, team: String, grid_pos: Vector3i):
-	"""Create and place a specific unit type at the specified grid position"""
-	# Validate target tile
+	"""Updated spawn method with flexible unit loading"""
 	var target_tile = grid.get_tile(grid_pos)
-	if not target_tile or not target_tile.is_walkable: 
+	if not target_tile or not target_tile.is_walkable or target_tile.occupied_unit:
 		return null
 	
-	if target_tile.occupied_unit:
-		return null
-	
-	# Instantiate the appropriate unit scene
 	var unit_instance: Unit = null
+	
+	# Create unit based on type - now more flexible
 	match unit_type:
-		"warrior":
-			unit_instance = warrior_scene.instantiate()
-		"archer":
-			unit_instance = archer_scene.instantiate()
-		"mage":
-			unit_instance = mage_scene.instantiate()
+		"assassin":
+			unit_instance = assassin_scene.instantiate()
 		"hound":
 			unit_instance = hound_scene.instantiate()
+		# Easy to add new units:
+		# "sniper":
+		#     var sniper_scene = preload("res://scenes/units/sniper.tscn")
+		#     unit_instance = sniper_scene.instantiate()
+		# "heavy":
+		#     var heavy_scene = preload("res://scenes/units/heavy.tscn")
+		#     unit_instance = heavy_scene.instantiate()
 		_:
-			push_error("Unknown unit type: %s" % unit_type)
-			return null
+			# Try to load unit dynamically from standard path
+			unit_instance = try_load_unit_dynamically(unit_type)
+			if not unit_instance:
+				push_error("Unknown unit type: %s" % unit_type)
+				return null
 	
-	# Configure unit properties
+	# Set team and add to scene
 	unit_instance.team = team
-	
-	# Apply visual distinction for enemy units (except hounds which handle their own appearance)
-	if team == "enemy" and unit_type != "hound":
-		unit_instance.unit_color = unit_instance.unit_color.darkened(0.4)
-	
-	# Add to scene and position on grid
 	combat_scene.add_child(unit_instance)
+	
+	# Place on grid - the unit's _ready() will handle equipment setup
 	unit_instance.place_on_tile(target_tile)
 	
 	# Add to tracking arrays
@@ -468,7 +469,21 @@ func spawn_unit(unit_type: String, team: String, grid_pos: Vector3i):
 	else:
 		enemy_units.append(unit_instance)
 	
+	print("Spawned %s (%s) at %s" % [unit_instance.unit_name, unit_type, grid_pos])
+	
 	return unit_instance
+
+
+func try_load_unit_dynamically(unit_type: String) -> Unit:
+	"""Try to load a unit scene dynamically from standard naming convention"""
+	var scene_path = "res://scenes/units/%s.tscn" % unit_type
+	
+	if ResourceLoader.exists(scene_path):
+		var scene = load(scene_path)
+		if scene:
+			return scene.instantiate()
+	
+	return null
 
 func handle_tile_click(tile: Tile):
 	"""Route tile clicks to appropriate handler based on game state"""
@@ -729,3 +744,126 @@ func end_enemy_turn():
 	clear_line_of_sight_visuals()
 	clear_line_of_sight_preview()
 	# Check for victory conditions
+
+
+
+
+
+
+
+
+# EXAMPLE EQUIPMENT CUSTOMIZATION UI INTEGRATION
+# =============================================
+
+# This would be part of a unit customization screen
+func show_equipment_customization_ui(unit: Unit):
+	"""Updated equipment customization that works with any unit class"""
+	print("=== %s (%s) Equipment Loadout ===" % [unit.unit_name, unit.unit_class])
+	print("WRVSS Stats: W=%d R=%d V=%d S=%d S=%d" % [unit.wisdom, unit.rage, unit.virtue, unit.strength, unit.steel])
+	print("")
+	
+	# Display current equipment (this part stays the same)
+	var equipment_slots = {
+		"Core": unit.core_equipment,
+		"Primary Weapon": unit.primary_weapon,
+		"Sidearm": unit.sidearm,
+		"Booster": unit.booster,
+		"Reactor": unit.reactor,
+		"Sensors": unit.sensors,
+		"Armor": unit.armor_equipment,
+		"Accessory 1": unit.accessory_1,
+		"Accessory 2": unit.accessory_2
+	}
+	
+	for slot_name in equipment_slots:
+		var equipment = equipment_slots[slot_name]
+		if equipment:
+			print("%s: %s (%s)" % [slot_name, equipment.equipment_name, equipment.manufacturer])
+		else:
+			print("%s: [Empty]" % slot_name)
+	
+	print("")
+	
+	# Display calculated stats (same as before)
+	print("=== Calculated Stats ===")
+	print("Health: %d/%d" % [unit.current_health, unit.max_health])
+	print("Movement: %d" % unit.movement_range)
+	print("Armor: %d" % unit.armor)
+	print("Evasion: %d" % unit.evasion)
+	print("Accuracy: %d" % unit.accuracy)
+	
+	# Unit-specific abilities
+	if unit.unit_class == "assassin":
+		print("Special: Shadow Strike, Backstab Bonus")
+	
+	# Validate loadout
+	var validation = EquipmentManager.validate_loadout(unit)
+	if not validation.is_valid:
+		print("\n⚠️ LOADOUT ISSUES:")
+		for issue in validation.issues:
+			print("  - " + issue)
+
+
+# EXAMPLE SPECIALIST UNIT CREATION
+# =============================================
+
+func create_specialist_unit(unit_type: String, specialization: String, team: String, grid_pos: Vector3i) -> Unit:
+	"""Create specialized units with custom equipment loadouts"""
+	var unit = spawn_unit(unit_type, team, grid_pos)
+	if not unit:
+		return null
+	
+	# Apply specialization-specific equipment
+	match specialization:
+		"stealth_assassin":
+			# Enhanced stealth capabilities
+			if unit.booster:
+				unit.booster.evasion_bonus += 10
+				unit.booster.speed_bonus += 1
+			
+		"combat_assassin":
+			# Enhanced combat abilities
+			if unit.sidearm:
+				unit.sidearm.min_damage += 3
+				unit.sidearm.max_damage += 5
+				unit.sidearm.crit_chance += 15
+		
+		"scout_assassin":
+			# Enhanced reconnaissance
+			if unit.sensors:
+				unit.sensors.accuracy_bonus += 10
+				unit.sensors.range_bonus += 1
+	
+	print("Created specialist %s: %s %s" % [unit.unit_name, specialization, unit_type])
+	return unit
+
+
+
+func get_available_unit_types() -> Array[String]:
+	"""Get list of all unit types that can be spawned"""
+	return ["assassin", "hound"]  # Add more as you create them
+
+func can_spawn_unit_type(unit_type: String) -> bool:
+	"""Check if a unit type can be spawned"""
+	return unit_type in get_available_unit_types() or try_load_unit_dynamically(unit_type) != null
+
+# NEW: Unit creation helpers for different scenarios
+func create_standard_enemy_force() -> Array[String]:
+	"""Define a standard enemy composition"""
+	return ["assassin", "assassin", "hound", "assassin"]
+
+func create_player_deployment_options() -> Dictionary:
+	"""Define player deployment options - used by placement UI"""
+	return {
+		"assassin": {
+			"limit": 4,
+			"display_name": "Assassin",
+			"description": "Stealth unit with high mobility and critical strikes"
+		}
+		# Add more as you expand:
+		# "sniper": {
+		#     "limit": 2,
+		#     "display_name": "Sniper",
+		#     "description": "Long-range precision unit"
+		# }
+	}

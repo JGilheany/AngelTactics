@@ -1,4 +1,4 @@
-
+# Hound.gd - Updated to use modern equipment system
 extends Unit
 class_name Hound
 
@@ -8,7 +8,7 @@ class_name Hound
 var AI_ENABLED: bool = true  # Set to false to disable all Hound AI
 
 # AI Configuration
-const AI_MOVE_DELAY = 1.0  # Seconds between AI actions
+const AI_MOVE_DELAY = 0.2  # Seconds between AI actions
 const AI_THINK_DELAY = 0.5  # Brief pause before starting AI turn
 
 # AI State tracking
@@ -17,23 +17,28 @@ var ai_timer: Timer
 var current_target: Unit = null
 
 func _ready():
-	# Set hound-specific stats (based on warrior stats)
+	print("Creating a Hound unit with equipment system")
+	
+	# Set base identity
 	unit_name = "Hound"
-	max_health = 120
-	movement_range = 2
-	attack_range = 1  # Melee attacker
-	attack_damage = 25
-	armor = 2  # Slightly more armored than basic warrior
+	unit_class = "hound"
 	unit_color = Color.BLACK  # Dark color for hounds
 	team = "enemy"  # Always enemy team
 	
-	# Set up AI timer
+	# Set WRVSS stats (Hounds favor physical attributes and aggression)
+	wisdom = 8    # Limited tactical awareness
+	rage = 16     # High combat intensity - very aggressive
+	virtue = 10   # Standard precision
+	strength = 14 # Good physical power
+	steel = 12    # Good endurance for pursuit
+	
+	# Set up AI timer before calling parent
 	setup_ai_timer()
 	
-	# Call parent _ready to initialize everything
-	super._ready()
+	# Equipment will be set by equip_default_loadout() in parent
+	super()  # Call parent _ready() which handles equipment setup
 	
-	print("Hound spawned: %s with %d HP" % [unit_name, max_health])
+	print("Hound unit created successfully with AI %s" % ("ENABLED" if AI_ENABLED else "DISABLED"))
 
 func setup_ai_timer():
 	"""Create and configure the AI action timer"""
@@ -42,11 +47,144 @@ func setup_ai_timer():
 	ai_timer.timeout.connect(_on_ai_timer_timeout)
 	add_child(ai_timer)
 
+# =============================================
+# HOUND EQUIPMENT SETUP - Similar to Assassin but more aggressive
+# =============================================
+func equip_default_loadout():
+	"""Override to give hounds specialized combat gear"""
+	# Use a basic combat core (or create hound-specific core)
+	core_equipment = Core.create_warrior_core()  # Reuse warrior core for now
+	if core_equipment:
+		core_equipment.equipment_name = "Hound Combat Core"
+		core_equipment.description = "Core optimized for aggressive close combat"
+		
+	# Hounds prefer close combat weapons
+	primary_weapon = null  # No primary weapon - prefer close combat
+	sidearm = Weapon.create_knife()  # Enhanced for combat
+	
+	# Enhance the knife for hound use
+	if sidearm:
+		sidearm.equipment_name = "Hound Claws"
+		sidearm.description = "Razor-sharp combat claws designed for hunting"
+		sidearm.min_damage += 5  # More damage than assassin knife
+		sidearm.max_damage += 8
+		sidearm.crit_chance += 5   # Some crit chance
+		sidearm.strength_scaling += 1.0  # Hounds use strength more than virtue
+		sidearm.rage_scaling += 1.5      # Benefit from rage stat
+	
+	# Standard equipment with modifications for pursuit/combat
+	reactor = Reactor.create_basic_reactor()
+	
+	# Enhanced booster for chase capability
+	booster = Booster.create_basic_booster()
+	if booster:
+		booster.equipment_name = "Hunter Booster"
+		booster.speed_bonus += 1  # Extra speed for chasing
+		booster.description = "Booster optimized for pursuit and combat mobility"
+	
+	sensors = Sensor.create_basic_sensor()
+	if sensors:
+		sensors.equipment_name = "Predator Sensors"
+		sensors.description = "Enhanced sensors for target tracking"
+	
+	# Medium armor - balance between protection and mobility
+	armor_equipment = ArmorEquipment.create_basic_armor()
+	if armor_equipment:
+		armor_equipment.equipment_name = "Combat Carapace"
+		armor_equipment.description = "Durable armor plating for frontline combat"
+		armor_equipment.armor_bonus += 3  # More armor than assassin
+		armor_equipment.health_bonus += 15  # More health
+		armor_equipment.evasion_bonus -= 3  # Less evasion than assassin
+	
+	# Combat accessory
+	accessory_1 = Accessory.create_basic_accessory()
+	if accessory_1:
+		accessory_1.equipment_name = "Combat Stimulant"
+		accessory_1.description = "Enhances combat performance and aggression"
+		accessory_1.accuracy_bonus = 5
+
+# =============================================
+# HOUND SPECIAL ABILITIES
+# =============================================
+func calculate_pack_bonus(target: Unit, base_damage: int) -> int:
+	"""Calculate bonus damage when multiple hounds are near the target"""
+	var pack_bonus = 0
+	var nearby_hounds = count_nearby_hounds(target)
+	
+	if nearby_hounds >= 2:
+		pack_bonus = int(base_damage * 0.25)  # 25% pack bonus
+		print("%s gets pack hunting bonus with %d nearby hounds!" % [unit_name, nearby_hounds])
+	
+	return base_damage + pack_bonus
+
+func count_nearby_hounds(target: Unit) -> int:
+	"""Count how many other hounds are adjacent to the target"""
+	var count = 0
+	var target_pos = target.grid_position
+	
+	# Check all adjacent positions
+	var adjacent_positions = [
+		Vector3i(target_pos.x + 1, target_pos.y, target_pos.z),
+		Vector3i(target_pos.x - 1, target_pos.y, target_pos.z),
+		Vector3i(target_pos.x, target_pos.y, target_pos.z + 1),
+		Vector3i(target_pos.x, target_pos.y, target_pos.z - 1),
+	]
+	
+	var unit_manager = get_unit_manager()
+	if not unit_manager:
+		return 0
+	
+	for pos in adjacent_positions:
+		var tile = unit_manager.grid.get_tile(pos)
+		if tile and tile.occupied_unit:
+			var unit = tile.occupied_unit
+			if unit is Hound and unit != self and unit.team == team:  # Other hounds on same team
+				count += 1
+	
+	return count
+
+# =============================================
+# OVERRIDE COMBAT METHODS FOR HOUND BONUSES
+# =============================================
+func attack_unit(target: Unit) -> int:
+	"""Override to add hound-specific combat bonuses"""
+	if not can_attack_target(target):
+		return 0
+	
+	var weapon = get_active_weapon()
+	if not weapon:
+		return 0
+	
+	# Calculate weapon damage
+	var damage_result = weapon.calculate_damage(self, target)
+	var final_damage = damage_result.final_damage
+	
+	# Apply hound pack bonus
+	final_damage = calculate_pack_bonus(target, final_damage)
+	
+	# Apply target's armor and resistances
+	final_damage = apply_damage_reduction(final_damage, weapon, target)
+	
+	# Deal damage
+	target.take_damage(final_damage)
+	has_acted = true
+	
+	# Print combat feedback
+	var damage_text = "%s mauls %s with %s for %d damage" % [unit_name, target.unit_name, weapon.equipment_name, final_damage]
+	if damage_result.is_crit:
+		damage_text += " (CRITICAL HIT!)"
+	print(damage_text)
+	
+	return final_damage
+
+# =============================================
+# VISUAL SETUP - Make hounds look different
+# =============================================
 func setup_visual():
-	"""Override visual setup to make hounds look different"""
+	"""Override visual setup to make hounds look different from assassins"""
 	super.setup_visual()  # Call parent setup first
 	
-	# Make the hound slightly larger and darker
+	# Make the hound slightly larger and more menacing
 	if mesh_instance and mesh_instance.mesh:
 		var mesh = mesh_instance.mesh as BoxMesh
 		mesh.size = Vector3(0.9, 1.1, 0.9)  # Slightly bigger than regular units
@@ -58,7 +196,7 @@ func setup_visual():
 		default_material.roughness = 0.7
 
 # =============================================
-# AI SYSTEM - Main AI Logic
+# AI SYSTEM - Main AI Logic (Updated for new equipment system)
 # =============================================
 
 func start_ai_turn():
@@ -135,12 +273,12 @@ func find_closest_player_unit() -> Unit:
 	return closest_unit
 
 func get_unit_manager():
-	"""Get reference to the UnitManager - adjust path as needed"""
-	# This assumes UnitManager is accessible through the combat scene
-	# You may need to adjust this path based on your scene structure
+	"""Get reference to the UnitManager"""
 	var combat_scene = get_tree().current_scene
 	if combat_scene.has_method("get_unit_manager"):
 		return combat_scene.get_unit_manager()
+	elif combat_scene.has_method("unit_manager"):
+		return combat_scene.unit_manager
 	return null
 
 func calculate_manhattan_distance(from_pos: Vector3i, to_pos: Vector3i) -> int:
@@ -226,10 +364,11 @@ func _check_post_move_attack(target: Unit):
 
 func find_best_move_toward_target(target: Unit) -> Tile:
 	"""Find the best tile to move to get closer to target"""
-	var grid = get_grid_reference()
-	if not grid:
+	var unit_manager = get_unit_manager()
+	if not unit_manager or not unit_manager.grid:
 		return null
 	
+	var grid = unit_manager.grid
 	var best_tile: Tile = null
 	var best_distance: int = 999999
 	
@@ -259,13 +398,6 @@ func find_best_move_toward_target(target: Unit) -> Tile:
 				best_tile = test_tile
 	
 	return best_tile
-
-func get_grid_reference() -> Grid:
-	"""Get reference to the grid system"""
-	var unit_manager = get_unit_manager()
-	if unit_manager:
-		return unit_manager.grid
-	return null
 
 func end_ai_turn():
 	"""Clean up and end the AI's turn"""

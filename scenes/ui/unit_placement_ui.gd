@@ -1,4 +1,4 @@
-# Unit Placement UI - Interactive unit spawning before combat
+# Unit Placement UI - Updated for sci-fi units with flexible expansion
 extends Control
 
 signal unit_placement_complete
@@ -12,147 +12,136 @@ var last_click_time: float = 0.0
 var last_clicked_unit: Unit = null
 var double_click_threshold: float = 0.5
 
-# Unit budget system - defines how many of each unit type can be placed
-var unit_limits: Dictionary = {
-	"warrior": 2,  # Allow 2 warriors
-	"archer": 1,   # Allow 1 archer  
-	"mage": 1      # Allow 1 mage
+# UPDATED: Flexible unit configuration system
+# Define available PLAYER units with their limits and display info
+var available_units: Dictionary = {
+	"assassin": {
+		"limit": 4,          # Allow 4 assassins
+		"display_name": "Assassin",
+		"description": "Stealth unit with high mobility and critical strikes"
+	}
+	# Easy to add more player units later:
+	# "sniper": {
+	#     "limit": 2,
+	#     "display_name": "Sniper", 
+	#     "description": "Long-range precision unit"
+	# },
+	# "heavy": {
+	#     "limit": 1,
+	#     "display_name": "Heavy Trooper",
+	#     "description": "Heavily armored frontline unit"
+	# }
 }
 
 # Track how many units have been placed
-var units_placed: Dictionary = {
-	"warrior": 0,
-	"archer": 0, 
-	"mage": 0
-}
+var units_placed: Dictionary = {}
 
-# UI button references
-@onready var warrior_button: Button
-@onready var archer_button: Button  
-@onready var mage_button: Button
-@onready var finish_button: Button
+# UI references - now dynamic based on available units
+var unit_buttons: Dictionary = {}
+var finish_button: Button
 
 func _ready():
-	# Find and connect UI buttons
-	setup_button_references()
-	setup_button_connections()
+	# Initialize placement counters
+	for unit_type in available_units.keys():
+		units_placed[unit_type] = 0
 	
-	# Initially hide finish button until all units are placed
-	if finish_button:
-		finish_button.hide()
+	# Create UI dynamically
+	setup_dynamic_ui()
 
-func setup_button_references():
-	"""Find button references using multiple fallback methods"""
-	# Try direct node paths first
-	warrior_button = get_node_or_null("WarriorButton")
-	archer_button = get_node_or_null("ArcherButton")
-	mage_button = get_node_or_null("MageButton")
-	finish_button = get_node_or_null("FinishButton")
+func setup_dynamic_ui():
+	"""Create UI buttons dynamically based on available units"""
+	# Clear any existing children (in case of restart)
+	for child in get_children():
+		child.queue_free()
 	
-	# Fallback: search by name pattern
-	if not warrior_button:
-		warrior_button = find_child("*Warrior*", true, false)
-	if not archer_button:
-		archer_button = find_child("*Archer*", true, false)
-	if not mage_button:
-		mage_button = find_child("*Mage*", true, false)
-	if not finish_button:
-		finish_button = find_child("*Finish*", true, false)
+	unit_buttons.clear()
 	
-	# Final fallback: recursive search by button text
-	if not warrior_button or not archer_button or not mage_button:
-		search_for_buttons_recursive(self)
-
-func search_for_buttons_recursive(node: Node):
-	"""Recursively search for buttons by examining their text content"""
-	for child in node.get_children():
-		if child is Button:
-			var text = child.text.to_lower()
-			if "warrior" in text and not warrior_button:
-				warrior_button = child
-			elif "archer" in text and not archer_button:
-				archer_button = child
-			elif "mage" in text and not mage_button:
-				mage_button = child
-			elif "finish" in text and not finish_button:
-				finish_button = child
-		search_for_buttons_recursive(child)
-
-func setup_button_connections():
-	"""Connect button signals to their respective handlers"""
-	if warrior_button:
-		# Disconnect any existing connections to prevent duplicates
-		if warrior_button.pressed.is_connected(_on_warrior_selected):
-			warrior_button.pressed.disconnect(_on_warrior_selected)
-		warrior_button.pressed.connect(_on_warrior_selected)
+	# Create main container
+	var main_container = VBoxContainer.new()
+	add_child(main_container)
 	
-	if archer_button:
-		if archer_button.pressed.is_connected(_on_archer_selected):
-			archer_button.pressed.disconnect(_on_archer_selected)
-		archer_button.pressed.connect(_on_archer_selected)
+	# Create title label
+	var title_label = Label.new()
+	title_label.text = "Deploy Your Units"
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	main_container.add_child(title_label)
 	
-	if mage_button:
-		if mage_button.pressed.is_connected(_on_mage_selected):
-			mage_button.pressed.disconnect(_on_mage_selected)
-		mage_button.pressed.connect(_on_mage_selected)
+	# Create button container
+	var button_container = VBoxContainer.new()
+	main_container.add_child(button_container)
 	
-	if finish_button:
-		if finish_button.pressed.is_connected(_on_finish_placement):
-			finish_button.pressed.disconnect(_on_finish_placement)
-		finish_button.pressed.connect(_on_finish_placement)
+	# Create buttons for each available unit type
+	for unit_type in available_units.keys():
+		var unit_data = available_units[unit_type]
+		
+		var button = Button.new()
+		button.text = "%s (0/%d)" % [unit_data.display_name, unit_data.limit]
+		button.custom_minimum_size = Vector2(200, 40)
+		
+		# Store reference and connect signal
+		unit_buttons[unit_type] = button
+		button.pressed.connect(_on_unit_button_pressed.bind(unit_type))
+		
+		button_container.add_child(button)
+		
+		# Add description label
+		var desc_label = Label.new()
+		desc_label.text = unit_data.description
+		desc_label.modulate = Color.GRAY
+		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		button_container.add_child(desc_label)
+		
+		# Add spacing
+		var spacer = Control.new()
+		spacer.custom_minimum_size = Vector2(0, 10)
+		button_container.add_child(spacer)
+	
+	# Create finish button (initially hidden)
+	finish_button = Button.new()
+	finish_button.text = "Start Battle!"
+	finish_button.custom_minimum_size = Vector2(200, 50)
+	finish_button.pressed.connect(_on_finish_placement)
+	main_container.add_child(finish_button)
+	finish_button.hide()
+	
+	# Initial button state update
+	update_button_states()
 
-# Button signal handlers - set the selected unit type for placement
-func _on_warrior_selected():
-	if units_placed["warrior"] < unit_limits["warrior"]:
-		selected_unit_type = "warrior"
-		update_button_highlights()
+func _on_unit_button_pressed(unit_type: String):
+	"""Handle unit button press - select unit type if available"""
+	if units_placed[unit_type] < available_units[unit_type].limit:
+		selected_unit_type = unit_type
+		update_button_states()
 
-func _on_archer_selected():
-	if units_placed["archer"] < unit_limits["archer"]:
-		selected_unit_type = "archer"
-		update_button_highlights()
-
-func _on_mage_selected():
-	if units_placed["mage"] < unit_limits["mage"]:
-		selected_unit_type = "mage"
-		update_button_highlights()
-
-func update_button_highlights():
+func update_button_states():
 	"""Update button visual states to show selection and availability"""
-	# Update warrior button
-	if warrior_button:
-		var can_place_warrior = units_placed["warrior"] < unit_limits["warrior"]
-		warrior_button.modulate = Color.WHITE if selected_unit_type != "warrior" else Color.YELLOW
-		warrior_button.disabled = not can_place_warrior
-		if not can_place_warrior:
-			warrior_button.modulate = Color.GRAY
-		warrior_button.text = "Warrior (%d/%d)" % [units_placed["warrior"], unit_limits["warrior"]]
-	
-	# Update archer button
-	if archer_button:
-		var can_place_archer = units_placed["archer"] < unit_limits["archer"]
-		archer_button.modulate = Color.WHITE if selected_unit_type != "archer" else Color.YELLOW
-		archer_button.disabled = not can_place_archer
-		if not can_place_archer:
-			archer_button.modulate = Color.GRAY
-		archer_button.text = "Archer (%d/%d)" % [units_placed["archer"], unit_limits["archer"]]
-	
-	# Update mage button
-	if mage_button:
-		var can_place_mage = units_placed["mage"] < unit_limits["mage"]
-		mage_button.modulate = Color.WHITE if selected_unit_type != "mage" else Color.YELLOW
-		mage_button.disabled = not can_place_mage
-		if not can_place_mage:
-			mage_button.modulate = Color.GRAY
-		mage_button.text = "Mage (%d/%d)" % [units_placed["mage"], unit_limits["mage"]]
+	for unit_type in unit_buttons.keys():
+		var button = unit_buttons[unit_type]
+		var unit_data = available_units[unit_type]
+		var placed = units_placed[unit_type]
+		var limit = unit_data.limit
+		var can_place = placed < limit
+		
+		# Update button text
+		button.text = "%s (%d/%d)" % [unit_data.display_name, placed, limit]
+		
+		# Update button appearance
+		if not can_place:
+			button.disabled = true
+			button.modulate = Color.GRAY
+		else:
+			button.disabled = false
+			if selected_unit_type == unit_type:
+				button.modulate = Color.YELLOW  # Selected
+			else:
+				button.modulate = Color.WHITE   # Available
 
 func start_unit_placement(manager: UnitManager, grid_ref: Grid):
 	"""Initialize the placement system and show the UI"""
 	unit_manager = manager
 	grid = grid_ref
 	
-	# Set initial button states to show unit limits
-	update_button_highlights()
+	update_button_states()
 	show()
 
 func handle_tile_click(tile: Tile):
@@ -173,7 +162,7 @@ func handle_tile_click(tile: Tile):
 		return  # Tile already occupied
 	
 	# Check unit limit
-	if units_placed[selected_unit_type] >= unit_limits[selected_unit_type]:
+	if units_placed[selected_unit_type] >= available_units[selected_unit_type].limit:
 		return  # Limit reached
 	
 	# Place the unit
@@ -184,26 +173,14 @@ func handle_tile_click(tile: Tile):
 		units_placed[selected_unit_type] += 1
 		
 		# Update UI state
-		update_button_highlights()
+		update_button_states()
 		
 		# Clear selection if limit reached
-		if units_placed[selected_unit_type] >= unit_limits[selected_unit_type]:
+		if units_placed[selected_unit_type] >= available_units[selected_unit_type].limit:
 			selected_unit_type = ""
 		
 		# Check if all units are now placed
 		check_placement_completion()
-
-func show_finish_button():
-	"""Show the finish placement button when all units are placed"""
-	if finish_button:
-		finish_button.show()
-	else:
-		# Create finish button dynamically if not found in scene
-		finish_button = Button.new()
-		finish_button.text = "Start Battle!"
-		finish_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		add_child(finish_button)
-		finish_button.pressed.connect(_on_finish_placement)
 
 func handle_unit_click_for_removal(unit: Unit):
 	"""Handle clicking on existing units - remove them with double-click"""
@@ -248,32 +225,29 @@ func remove_unit(unit: Unit):
 	unit.queue_free()
 	
 	# Update UI state
-	update_button_highlights()
+	update_button_states()
 	
 	# Update finish button visibility
 	check_placement_completion()
 
 func get_unit_type_from_unit(unit: Unit) -> String:
-	"""Determine unit type from unit instance by examining name or scene path"""
-	var unit_name = unit.unit_name.to_lower()
+	"""Determine unit type from unit instance"""
+	# Check unit class first
+	if unit.unit_class and available_units.has(unit.unit_class):
+		return unit.unit_class
 	
-	# Try to match by unit name first
-	if "warrior" in unit_name:
-		return "warrior"
-	elif "archer" in unit_name:
-		return "archer"
-	elif "mage" in unit_name:
-		return "mage"
-	else:
-		# Fallback: try to match by scene filename
-		var scene_file = unit.scene_file_path
-		if scene_file:
-			if "warrior" in scene_file:
-				return "warrior"
-			elif "archer" in scene_file:
-				return "archer"
-			elif "mage" in scene_file:
-				return "mage"
+	# Fallback to name matching
+	var unit_name = unit.unit_name.to_lower()
+	for unit_type in available_units.keys():
+		if unit_type in unit_name:
+			return unit_type
+	
+	# Last resort: check scene filename
+	var scene_file = unit.scene_file_path
+	if scene_file:
+		for unit_type in available_units.keys():
+			if unit_type in scene_file:
+				return unit_type
 	
 	return ""  # Could not determine type
 
@@ -283,16 +257,15 @@ func check_placement_completion():
 	var total_allowed = 0
 	
 	# Calculate totals
-	for unit_type in units_placed.keys():
+	for unit_type in available_units.keys():
 		total_placed += units_placed[unit_type]
-		total_allowed += unit_limits[unit_type]
+		total_allowed += available_units[unit_type].limit
 	
 	# Show finish button if all units placed, hide otherwise
 	if total_placed >= total_allowed:
-		show_finish_button()
+		finish_button.show()
 	else:
-		if finish_button:
-			finish_button.hide()
+		finish_button.hide()
 
 func _on_finish_placement():
 	"""Complete unit placement and transition to battle phase"""
@@ -308,12 +281,30 @@ func _on_finish_placement():
 	# Signal that placement is complete
 	unit_placement_complete.emit()
 
-# Debug function for manual testing
-func test_buttons():
-	"""Manual test function for button connectivity"""
-	if warrior_button:
-		_on_warrior_selected()
-	if archer_button:
-		_on_archer_selected()
-	if mage_button:
-		_on_mage_selected()
+# UTILITY FUNCTIONS FOR EASY UNIT EXPANSION
+# =========================================
+
+func add_new_unit_type(unit_type: String, limit: int, display_name: String, description: String):
+	"""Dynamically add a new unit type (useful for DLC/updates)"""
+	available_units[unit_type] = {
+		"limit": limit,
+		"display_name": display_name,
+		"description": description
+	}
+	units_placed[unit_type] = 0
+	
+	# Rebuild UI if already created
+	if unit_buttons.size() > 0:
+		setup_dynamic_ui()
+
+func set_unit_limit(unit_type: String, new_limit: int):
+	"""Change the deployment limit for a unit type"""
+	if available_units.has(unit_type):
+		available_units[unit_type].limit = new_limit
+		update_button_states()
+
+# Debug function for testing new units
+func debug_add_test_units():
+	"""Add some test units for development"""
+	add_new_unit_type("sniper", 2, "Sniper", "Long-range precision unit")
+	add_new_unit_type("heavy", 1, "Heavy Trooper", "Heavily armored frontline unit")
