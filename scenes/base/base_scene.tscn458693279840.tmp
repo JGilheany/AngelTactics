@@ -1,0 +1,632 @@
+[gd_scene load_steps=21 format=3 uid="uid://dqx5b25kgf38n"]
+
+[ext_resource type="Script" uid="uid://dx4e7n3bf765g" path="res://scenes/base/base_scene.gd" id="1_sihbv"]
+[ext_resource type="Script" uid="uid://dw4gefkkdh0ku" path="res://scenes/base/base_camera_controller.gd" id="2_sihbv"]
+[ext_resource type="Script" uid="uid://dbrn5oity0bwg" path="res://scenes/base/base_ui.gd" id="3_5ccxo"]
+[ext_resource type="Script" uid="uid://e401oo3xbn7y" path="res://scenes/base/StorageRoomUI.gd" id="4_qk1g8"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_5ccxo"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_t3ku5"]
+albedo_color = Color(0, 0.616667, 1, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_sihbv"]
+size = Vector3(0.990051, 0.0996094, 0.197968)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qk1g8"]
+size = Vector3(0.807007, 0.804443, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5ccxo"]
+albedo_color = Color(1, 0.433333, 0, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_v2ndm"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0fggs"]
+albedo_color = Color(0.1715, 0, 0.21, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kab6x"]
+albedo_color = Color(1, 0, 0.0166664, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lyd5g"]
+albedo_color = Color(1, 0.833333, 0, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cvnoi"]
+albedo_color = Color(1, 0, 0.85, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_w0ofd"]
+albedo_color = Color(0, 1, 0.05, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jrdhu"]
+albedo_color = Color(0.1261, 0.97, 0.88561, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_t3ku5"]
+top_radius = 0.25
+bottom_radius = 0.25
+height = 1.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qk1g8"]
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.4, 0.4, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5ccxo"]
+bg_color = Color(0.25098, 0.25098, 0.25098, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v2ndm"]
+bg_color = Color(0.836383, 0.514635, 0.132788, 1)
+
+[node name="BaseScene" type="Node3D"]
+script = ExtResource("1_sihbv")
+
+[node name="CameraController" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.885269)
+script = ExtResource("2_sihbv")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="CameraController"]
+transform = Transform3D(0.707107, 0.5, -0.5, 0, 0.707107, 0.707107, 0.707107, -0.5, 0.5, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="CameraController"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.441859, -0.159283)
+
+[node name="Background" type="Node3D" parent="."]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Background"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.55793, 1.35283)
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Background/StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.38314)
+size = Vector3(9, 9, 5)
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="Background/StaticBody3D/CSGBox3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00982904, 2.2893, 1.18928)
+operation = 2
+size = Vector3(6, 4, 4)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Background/StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00473344, 2.55793, 1.14578)
+shape = SubResource("BoxShape3D_5ccxo")
+
+[node name="Rooms" type="Node3D" parent="."]
+
+[node name="Medical" type="StaticBody3D" parent="Rooms"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1, 0)
+
+[node name="MeshInstance3D" type="CSGBox3D" parent="Rooms/Medical"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.476339, -1.35767)
+material = SubResource("StandardMaterial3D_t3ku5")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Rooms/Medical/MeshInstance3D"]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0, 0.239549)
+operation = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/Medical"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000274658, -0.92378, -1.35364)
+shape = SubResource("BoxShape3D_sihbv")
+
+[node name="Area3D" type="Area3D" parent="Rooms/Medical"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/Medical/Area3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00262451, -0.47828, -1.35815)
+shape = SubResource("BoxShape3D_qk1g8")
+
+[node name="RoomLabel" type="Label3D" parent="Rooms/Medical"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.000918388, -0.243697, -1.27543)
+pixel_size = 0.003
+billboard = 1
+text = "Medical"
+
+[node name="Workshop" type="StaticBody3D" parent="Rooms"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 0)
+
+[node name="MeshInstance3D" type="CSGBox3D" parent="Rooms/Workshop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.476339, -1.35767)
+material = SubResource("StandardMaterial3D_5ccxo")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Rooms/Workshop/MeshInstance3D"]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0, 0.239549)
+operation = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/Workshop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000274658, -0.92378, -1.35364)
+shape = SubResource("BoxShape3D_sihbv")
+
+[node name="Area3D" type="Area3D" parent="Rooms/Workshop"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/Workshop/Area3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00262451, -0.47828, -1.35815)
+shape = SubResource("BoxShape3D_qk1g8")
+
+[node name="RoomLabel" type="Label3D" parent="Rooms/Workshop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.000918388, -0.243697, -1.27543)
+pixel_size = 0.003
+billboard = 1
+text = "Workshop"
+
+[node name="Research" type="StaticBody3D" parent="Rooms"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, 0)
+
+[node name="MeshInstance3D" type="CSGBox3D" parent="Rooms/Research"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.476339, -1.35767)
+material = SubResource("StandardMaterial3D_v2ndm")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Rooms/Research/MeshInstance3D"]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0, 0.239549)
+operation = 2
+
+[node name="Area3D" type="Area3D" parent="Rooms/Research"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/Research/Area3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00262451, -0.47828, -1.35815)
+shape = SubResource("BoxShape3D_qk1g8")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/Research"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000274658, -0.92378, -1.35364)
+shape = SubResource("BoxShape3D_sihbv")
+
+[node name="RoomLabel" type="Label3D" parent="Rooms/Research"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.000918388, -0.243697, -1.27543)
+pixel_size = 0.003
+billboard = 1
+text = "Research
+"
+
+[node name="CommandCenter" type="StaticBody3D" parent="Rooms"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="MeshInstance3D" type="CSGBox3D" parent="Rooms/CommandCenter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.476339, -1.35767)
+material = SubResource("StandardMaterial3D_0fggs")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Rooms/CommandCenter/MeshInstance3D"]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0, 0.239549)
+operation = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/CommandCenter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000274658, -0.92378, -1.35364)
+shape = SubResource("BoxShape3D_sihbv")
+
+[node name="Area3D" type="Area3D" parent="Rooms/CommandCenter"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/CommandCenter/Area3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00262451, -0.47828, -1.35815)
+shape = SubResource("BoxShape3D_qk1g8")
+
+[node name="RoomLabel2" type="Label3D" parent="Rooms/CommandCenter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.000918388, -0.243697, -1.27543)
+pixel_size = 0.003
+billboard = 1
+text = "Command"
+
+[node name="CentralHub" type="StaticBody3D" parent="Rooms"]
+
+[node name="MeshInstance3D" type="CSGBox3D" parent="Rooms/CentralHub"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.476339, -1.35767)
+material = SubResource("StandardMaterial3D_kab6x")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Rooms/CentralHub/MeshInstance3D"]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0, 0.239549)
+operation = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/CentralHub"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000274658, -0.92378, -1.35364)
+shape = SubResource("BoxShape3D_sihbv")
+
+[node name="Area3D" type="Area3D" parent="Rooms/CentralHub"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/CentralHub/Area3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00262451, -0.47828, -1.35815)
+shape = SubResource("BoxShape3D_qk1g8")
+
+[node name="RoomLabel" type="Label3D" parent="Rooms/CentralHub"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.000918388, -0.243697, -1.27543)
+pixel_size = 0.003
+billboard = 1
+text = "Central"
+
+[node name="Storage" type="StaticBody3D" parent="Rooms"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+
+[node name="MeshInstance3D" type="CSGBox3D" parent="Rooms/Storage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.476339, -1.35767)
+material = SubResource("StandardMaterial3D_lyd5g")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Rooms/Storage/MeshInstance3D"]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0, 0.239549)
+operation = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/Storage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000274658, -0.92378, -1.35364)
+shape = SubResource("BoxShape3D_sihbv")
+
+[node name="Area3D" type="Area3D" parent="Rooms/Storage"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/Storage/Area3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00262451, -0.47828, -1.35815)
+shape = SubResource("BoxShape3D_qk1g8")
+
+[node name="RoomLabel2" type="Label3D" parent="Rooms/Storage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.000918388, -0.243697, -1.27543)
+pixel_size = 0.003
+billboard = 1
+text = "Storage"
+
+[node name="Communications" type="StaticBody3D" parent="Rooms"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0)
+
+[node name="MeshInstance3D" type="CSGBox3D" parent="Rooms/Communications"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.476339, -1.35767)
+material = SubResource("StandardMaterial3D_cvnoi")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Rooms/Communications/MeshInstance3D"]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0, 0.239549)
+operation = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/Communications"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000274658, -0.92378, -1.35364)
+shape = SubResource("BoxShape3D_sihbv")
+
+[node name="Area3D" type="Area3D" parent="Rooms/Communications"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/Communications/Area3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00262451, -0.47828, -1.35815)
+shape = SubResource("BoxShape3D_qk1g8")
+
+[node name="RoomLabel2" type="Label3D" parent="Rooms/Communications"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.000918388, -0.243697, -1.27543)
+pixel_size = 0.003
+billboard = 1
+text = "Comms"
+
+[node name="Recreation" type="StaticBody3D" parent="Rooms"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
+
+[node name="MeshInstance3D" type="CSGBox3D" parent="Rooms/Recreation"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.476339, -1.35767)
+material = SubResource("StandardMaterial3D_w0ofd")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Rooms/Recreation/MeshInstance3D"]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0, 0.239549)
+operation = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/Recreation"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000274658, -0.92378, -1.35364)
+shape = SubResource("BoxShape3D_sihbv")
+
+[node name="Area3D" type="Area3D" parent="Rooms/Recreation"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/Recreation/Area3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00262451, -0.47828, -1.35815)
+shape = SubResource("BoxShape3D_qk1g8")
+
+[node name="RoomLabel" type="Label3D" parent="Rooms/Recreation"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.000918388, -0.243697, -1.27543)
+pixel_size = 0.003
+billboard = 1
+text = "Recreation"
+
+[node name="Barracks" type="StaticBody3D" parent="Rooms"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, 0)
+
+[node name="MeshInstance3D" type="CSGBox3D" parent="Rooms/Barracks"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.476339, -1.35767)
+material = SubResource("StandardMaterial3D_jrdhu")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Rooms/Barracks/MeshInstance3D"]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0, 0.239549)
+operation = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/Barracks"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000274658, -0.92378, -1.35364)
+shape = SubResource("BoxShape3D_sihbv")
+
+[node name="Area3D" type="Area3D" parent="Rooms/Barracks"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rooms/Barracks/Area3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00262451, -0.47828, -1.35815)
+shape = SubResource("BoxShape3D_qk1g8")
+
+[node name="RoomLabel" type="Label3D" parent="Rooms/Barracks"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.000918388, -0.243697, -1.27543)
+pixel_size = 0.003
+billboard = 1
+text = "Barracks"
+
+[node name="Tunnels" type="Node3D" parent="."]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Tunnels"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1, 0)
+
+[node name="CSGMesh3D" type="CSGMesh3D" parent="Tunnels/StaticBody3D"]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 1, -0.75, -1.25)
+rotation_order = 1
+mesh = SubResource("CylinderMesh_t3ku5")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Tunnels/StaticBody3D/CSGMesh3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.152715)
+operation = 2
+size = Vector3(0.249527, 1.01758, 0.224854)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Tunnels/StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.997773, -0.919766, -1.1273)
+shape = SubResource("BoxShape3D_sihbv")
+
+[node name="StaticBody3D2" type="StaticBody3D" parent="Tunnels"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 0)
+
+[node name="CSGMesh3D" type="CSGMesh3D" parent="Tunnels/StaticBody3D2"]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 1, -0.75, -1.25)
+rotation_order = 1
+mesh = SubResource("CylinderMesh_t3ku5")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Tunnels/StaticBody3D2/CSGMesh3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.152715)
+operation = 2
+size = Vector3(0.249527, 1.01758, 0.224854)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Tunnels/StaticBody3D2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.997773, -0.919766, -1.1273)
+shape = SubResource("BoxShape3D_sihbv")
+
+[node name="StaticBody3D3" type="StaticBody3D" parent="Tunnels"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, 0)
+
+[node name="CSGMesh3D" type="CSGMesh3D" parent="Tunnels/StaticBody3D3"]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 1, -0.75, -1.25)
+rotation_order = 1
+mesh = SubResource("CylinderMesh_t3ku5")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Tunnels/StaticBody3D3/CSGMesh3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.152715)
+operation = 2
+size = Vector3(0.249527, 1.01758, 0.224854)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Tunnels/StaticBody3D3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.997773, -0.919766, -1.1273)
+shape = SubResource("BoxShape3D_sihbv")
+
+[node name="StaticBody3D4" type="StaticBody3D" parent="Tunnels"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="CSGMesh3D" type="CSGMesh3D" parent="Tunnels/StaticBody3D4"]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 1, -0.75, -1.25)
+rotation_order = 1
+mesh = SubResource("CylinderMesh_t3ku5")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Tunnels/StaticBody3D4/CSGMesh3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.152715)
+operation = 2
+size = Vector3(0.249527, 1.01758, 0.224854)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Tunnels/StaticBody3D4"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.997773, -0.919766, -1.1273)
+shape = SubResource("BoxShape3D_sihbv")
+
+[node name="StaticBody3D5" type="StaticBody3D" parent="Tunnels"]
+
+[node name="CSGMesh3D" type="CSGMesh3D" parent="Tunnels/StaticBody3D5"]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 1, -0.75, -1.25)
+rotation_order = 1
+mesh = SubResource("CylinderMesh_t3ku5")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Tunnels/StaticBody3D5/CSGMesh3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.152715)
+operation = 2
+size = Vector3(0.249527, 1.01758, 0.224854)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Tunnels/StaticBody3D5"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.997773, -0.919766, -1.1273)
+shape = SubResource("BoxShape3D_sihbv")
+
+[node name="StaticBody3D6" type="StaticBody3D" parent="Tunnels"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+
+[node name="CSGMesh3D" type="CSGMesh3D" parent="Tunnels/StaticBody3D6"]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 1, -0.75, -1.25)
+rotation_order = 1
+mesh = SubResource("CylinderMesh_t3ku5")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Tunnels/StaticBody3D6/CSGMesh3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.152715)
+operation = 2
+size = Vector3(0.249527, 1.01758, 0.224854)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Tunnels/StaticBody3D6"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.997773, -0.919766, -1.1273)
+shape = SubResource("BoxShape3D_sihbv")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="BaseUI" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("3_5ccxo")
+
+[node name="RoomInfoPanel" type="Panel" parent="UI/BaseUI"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -35.0
+offset_top = 5.0
+offset_right = 215.0
+offset_bottom = 405.0
+grow_horizontal = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/BaseUI/RoomInfoPanel"]
+layout_mode = 0
+offset_left = 25.0
+offset_top = 39.0
+offset_right = 65.0
+offset_bottom = 79.0
+
+[node name="RoomNameLabel" type="Label" parent="UI/BaseUI/RoomInfoPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="RoomDescriptionLabel" type="RichTextLabel" parent="UI/BaseUI/RoomInfoPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="InteractButton" type="Button" parent="UI/BaseUI/RoomInfoPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="NavigationPanel" type="Panel" parent="UI/BaseUI"]
+layout_mode = 1
+offset_left = 48.0
+offset_top = 369.0
+offset_right = 48.0
+offset_bottom = 369.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/BaseUI/NavigationPanel"]
+layout_mode = 0
+offset_left = 26.0
+offset_right = 133.0
+offset_bottom = 40.0
+
+[node name="BackButton" type="Button" parent="UI/BaseUI/NavigationPanel/VBoxContainer"]
+layout_mode = 2
+text = "Back To Map"
+
+[node name="StorageRoomUI" type="Control" parent="UI"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("4_qk1g8")
+
+[node name="RoomPanel" type="Panel" parent="UI/StorageRoomUI"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_qk1g8")
+
+[node name="MainContainer" type="VBoxContainer" parent="UI/StorageRoomUI/RoomPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="ContentContainer" type="HBoxContainer" parent="UI/StorageRoomUI/RoomPanel/MainContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="NPCPanel" type="Panel" parent="UI/StorageRoomUI/RoomPanel/MainContainer/ContentContainer"]
+custom_minimum_size = Vector2(300, 400)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_5ccxo")
+
+[node name="NPCContainer" type="VBoxContainer" parent="UI/StorageRoomUI/RoomPanel/MainContainer/ContentContainer/NPCPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="NPCNameLabel" type="Label" parent="UI/StorageRoomUI/RoomPanel/MainContainer/ContentContainer/NPCPanel/NPCContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Storage Keeper"
+horizontal_alignment = 1
+
+[node name="NPCPortrait" type="Panel" parent="UI/StorageRoomUI/RoomPanel/MainContainer/ContentContainer/NPCPanel/NPCContainer"]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_v2ndm")
+
+[node name="DialogueLabel" type="Label" parent="UI/StorageRoomUI/RoomPanel/MainContainer/ContentContainer/NPCPanel/NPCContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Welcome to the storage bay"
+autowrap_mode = 3
+
+[node name="InventoryPanel" type="Panel" parent="UI/StorageRoomUI/RoomPanel/MainContainer/ContentContainer"]
+custom_minimum_size = Vector2(300, 400)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_5ccxo")
+
+[node name="InventoryContainer" type="VBoxContainer" parent="UI/StorageRoomUI/RoomPanel/MainContainer/ContentContainer/InventoryPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="MoneyLabel" type="Label" parent="UI/StorageRoomUI/RoomPanel/MainContainer/ContentContainer/InventoryPanel/InventoryContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Credits: 0"
+
+[node name="CategoryTabs" type="HBoxContainer" parent="UI/StorageRoomUI/RoomPanel/MainContainer/ContentContainer/InventoryPanel/InventoryContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="ControlsContainer" type="HBoxContainer" parent="UI/StorageRoomUI/RoomPanel/MainContainer/ContentContainer/InventoryPanel/InventoryContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SearchField" type="LineEdit" parent="UI/StorageRoomUI/RoomPanel/MainContainer/ContentContainer/InventoryPanel/InventoryContainer/ControlsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Search Equipment..."
+
+[node name="SortDropdown" type="OptionButton" parent="UI/StorageRoomUI/RoomPanel/MainContainer/ContentContainer/InventoryPanel/InventoryContainer/ControlsContainer"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="UI/StorageRoomUI/RoomPanel/MainContainer/ContentContainer/InventoryPanel/InventoryContainer"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InventoryList" type="VBoxContainer" parent="UI/StorageRoomUI/RoomPanel/MainContainer/ContentContainer/InventoryPanel/InventoryContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 5
+
+[node name="ActionsPanel" type="HBoxContainer" parent="UI/StorageRoomUI/RoomPanel"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/separation = 10
+
+[node name="CloseButton" type="Button" parent="UI/StorageRoomUI/RoomPanel"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+text = "Close Storage"

@@ -1,0 +1,153 @@
+[gd_scene load_steps=5 format=3 uid="uid://b04ajmsb56cc3"]
+
+[ext_resource type="Script" uid="uid://e401oo3xbn7y" path="res://scenes/base/ui/StorageRoomUI.gd" id="1_bdsg2"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4vkcy"]
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.4, 0.4, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_71fm1"]
+bg_color = Color(0.25098, 0.25098, 0.25098, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x7d3l"]
+bg_color = Color(0.836383, 0.514635, 0.132788, 1)
+
+[node name="StorageRoomUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_bdsg2")
+
+[node name="RoomPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_4vkcy")
+
+[node name="MainContainer" type="VBoxContainer" parent="RoomPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="ContentContainer" type="HBoxContainer" parent="RoomPanel/MainContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="NPCPanel" type="Panel" parent="RoomPanel/MainContainer/ContentContainer"]
+custom_minimum_size = Vector2(300, 400)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_71fm1")
+
+[node name="NPCContainer" type="VBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/NPCPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="NPCNameLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/NPCPanel/NPCContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Storage Keeper"
+horizontal_alignment = 1
+
+[node name="NPCPortrait" type="Panel" parent="RoomPanel/MainContainer/ContentContainer/NPCPanel/NPCContainer"]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_x7d3l")
+
+[node name="DialogueLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/NPCPanel/NPCContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Welcome to the storage bay"
+autowrap_mode = 3
+
+[node name="InventoryPanel" type="Panel" parent="RoomPanel/MainContainer/ContentContainer"]
+custom_minimum_size = Vector2(300, 400)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_71fm1")
+
+[node name="InventoryContainer" type="VBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/InventoryPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="MoneyLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/InventoryPanel/InventoryContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Credits: 0"
+
+[node name="CategoryTabs" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/InventoryPanel/InventoryContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="ControlsContainer" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/InventoryPanel/InventoryContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SearchField" type="LineEdit" parent="RoomPanel/MainContainer/ContentContainer/InventoryPanel/InventoryContainer/ControlsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Search Equipment..."
+
+[node name="SortDropdown" type="OptionButton" parent="RoomPanel/MainContainer/ContentContainer/InventoryPanel/InventoryContainer/ControlsContainer"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="RoomPanel/MainContainer/ContentContainer/InventoryPanel/InventoryContainer"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InventoryList" type="VBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/InventoryPanel/InventoryContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 5
+
+[node name="ActionsPanel" type="HBoxContainer" parent="RoomPanel/MainContainer"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="CloseButton" type="Button" parent="RoomPanel/MainContainer"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+text = "Close Storage"

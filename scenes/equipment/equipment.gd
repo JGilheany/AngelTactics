@@ -92,18 +92,18 @@ func get_display_name() -> String:
 # =============================================
 # VIRTUAL METHODS - Override in subclasses for special behaviors
 # =============================================
-func on_equipped(unit) -> void:
+func on_equipped(_unit) -> void:
 	"""Called when this equipment is equipped to a unit"""
 	pass
 
-func on_unequipped(unit) -> void:
+func on_unequipped(_unit) -> void:
 	"""Called when this equipment is removed from a unit"""
 	pass
 
-func on_turn_start(unit) -> void:
+func on_turn_start(_unit) -> void:
 	"""Called at the start of each turn while equipped"""
 	pass
 
-func on_turn_end(unit) -> void:
+func on_turn_end(_unit) -> void:
 	"""Called at the end of each turn while equipped"""
 	pass

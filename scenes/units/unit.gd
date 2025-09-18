@@ -451,7 +451,7 @@ func setup_visual():
 
 func setup_click_detection():
 	if static_body and static_collision:
-		var connection_result = static_body.input_event.connect(_on_static_body_clicked)
+		var _connection_result = static_body.input_event.connect(_on_static_body_clicked)
 		static_body.collision_layer = 2
 		static_body.collision_mask = 0
 		
