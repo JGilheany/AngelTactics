@@ -6,6 +6,8 @@ extends Node3D
 
 # Storage room UI will be loaded as a scene
 var storage_room_ui: Control
+var barracks_ui: Control
+
 
 # Room references (will be populated from scene)
 var room_nodes: Dictionary = {}
@@ -122,6 +124,11 @@ func _on_storage_room_closed():
 	if base_ui:
 		base_ui.visible = true
 
+func _on_barracks_room_closed():
+	"""Handle barracks UI closing"""
+	if base_ui:
+		base_ui.visible = true
+
 func show_central_hub_npc(npc: BaseNPC):
 	print(npc.npc_name, ": ", npc.get_current_dialogue())
 
@@ -132,7 +139,29 @@ func show_command_center_npc(npc: BaseNPC):
 	print(npc.npc_name, ": ", npc.get_current_dialogue())
 
 func show_barracks_npc(npc: BaseNPC):
-	print(npc.npc_name, ": ", npc.get_current_dialogue())
+	"""Handle barracks NPC interaction"""
+	open_barracks_room(npc)
+
+func open_barracks_room(npc: BaseNPC = null):
+	"""Open the barracks interface"""
+	if not barracks_ui:
+		# Load the barracks UI scene
+		var barracks_scene = preload("res://scenes/base/ui/BarracksUI.tscn")
+		barracks_ui = barracks_scene.instantiate()
+		barracks_ui.name = "BarracksUI"
+		$UI.add_child(barracks_ui)
+		barracks_ui.room_closed.connect(_on_barracks_room_closed)
+		
+		# Initialize the BarracksUI with required references
+		barracks_ui.initialize(self, camera_controller, inventory_manager)
+	
+	# Show barracks UI with NPC
+	barracks_ui.show_barracks(npc)
+	
+	# Hide base UI while in room interface
+	if base_ui:
+		base_ui.visible = false
+
 
 func show_workshop_npc(npc: BaseNPC):
 	print(npc.npc_name, ": ", npc.get_current_dialogue())
@@ -324,7 +353,10 @@ func show_command_center_menu():
 	print("Command Center - Mission planning")
 
 func show_barracks_menu():
-	print("Barracks - Unit management")
+	"""Show barracks menu (called from interact_with_room)"""
+	# Get the barracks NPC and open interface
+	var barracks_npc = get_room_npc("barracks")
+	open_barracks_room(barracks_npc)
 
 func show_workshop_menu():
 	print("Workshop - Equipment crafting")

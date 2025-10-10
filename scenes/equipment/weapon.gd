@@ -198,6 +198,31 @@ static func create_assault_rifle() -> Weapon:
 	#arifle.tags = ["ranged", "primary", "sidearm"]
 	return arifle
 
+
+static func create_pulse_rifle() -> Weapon:
+	"""Factory method to create a basic pulse rifle"""
+	var prifle = Weapon.new()
+	prifle.equipment_name = "Pulse Rifle"
+	prifle.manufacturer = "MilTech Corp"
+	prifle.description = "Standard military rifle with selective fire capability"
+	prifle.cost = 500
+	prifle.power_draw = 2
+	
+	prifle.min_damage = 15
+	prifle.max_damage = 25
+	prifle.weapon_accuracy = 5
+	prifle.weapon_range = 4
+	prifle.max_range = 6
+	prifle.crit_chance = 8
+	prifle.damage_types = ["ballistic"]
+	
+	# Scales with Strength (B) and Steel (A)
+	prifle.strength_scaling = 3.0
+	prifle.steel_scaling = 4.0
+	
+	#arifle.tags = ["ranged", "primary", "sidearm"]
+	return prifle
+
 static func create_knife() -> Weapon:
 	"""Factory method to create a combat knife"""
 	var knife = Weapon.new()

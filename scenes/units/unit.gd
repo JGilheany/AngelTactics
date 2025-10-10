@@ -32,6 +32,7 @@ signal mouse_exited(unit)
 @export var unit_class: String = "warrior"  # Can be overridden by Core equipment
 @export var experience: int = 0
 @export var unit_color: Color = Color.BLUE
+@export var unit_id: int = -1 
 
 # =============================================
 # EQUIPMENT SLOTS - The new modular system
@@ -69,6 +70,7 @@ var has_moved: bool = false
 var current_tile: Tile
 var grid_position: Vector3i
 var is_selected: bool = false
+
 
 # =============================================
 # VISUAL COMPONENTS
@@ -203,6 +205,54 @@ func equip_item(equipment: Equipment, slot: String) -> Dictionary:
 	result.message = "Equipped %s successfully" % equipment.equipment_name
 	return result
 
+func remove_equipment_from_slot(slot: String) -> Dictionary:
+	"""
+	Remove equipment from specified slot
+	Returns: {success: bool, message: String}
+	"""
+	var result = {"success": false, "message": ""}
+	
+	# Get current equipment
+	var old_equipment = get_equipment_in_slot(slot)
+	if not old_equipment:
+		result.message = "No equipment in slot to remove"
+		result.success = true  # Not really an error
+		return result
+	
+	# Unequip old item
+	old_equipment.on_unequipped(self)
+	
+	# Remove from slot
+	match slot:
+		"core":
+			core_equipment = null
+		"primary_weapon":
+			primary_weapon = null
+		"sidearm":
+			sidearm = null
+		"booster":
+			booster = null
+		"reactor":
+			reactor = null
+		"sensors":
+			sensors = null
+		"armor":
+			armor_equipment = null
+		"accessory_1":
+			accessory_1 = null
+		"accessory_2":
+			accessory_2 = null
+		_:
+			result.message = "Invalid equipment slot"
+			return result
+	
+	# Recalculate stats
+	recalculate_all_stats()
+	
+	result.success = true
+	result.message = "Removed %s successfully" % old_equipment.equipment_name
+	return result
+
 func get_equipment_in_slot(slot: String) -> Equipment:
 	"""Get the equipment currently in the specified slot"""
 	match slot:
@@ -218,16 +268,16 @@ func get_equipment_in_slot(slot: String) -> Equipment:
 		_: return null
 
 func get_total_power_consumption() -> int:
-	"""Calculate total power draw from all equipment"""
-	var total = 0
+	"""Calculate total power draw from equipment with positive power draw"""
+	var total_consumption = 0
 	var equipment_list = [core_equipment, primary_weapon, sidearm, booster, reactor, 
 						  sensors, armor_equipment, accessory_1, accessory_2]
 	
 	for equipment in equipment_list:
-		if equipment:
-			total += equipment.power_draw
+		if equipment and equipment.power_draw > 0:
+			total_consumption += equipment.power_draw
 	
-	return total
+	return total_consumption
 
 func get_total_power_generation() -> int:
 	"""Calculate total power generation (negative power draw)"""

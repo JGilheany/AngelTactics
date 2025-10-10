@@ -32,6 +32,10 @@ func _init():
 	add_equipment("basic_reactor", 2)
 	add_equipment("warrior_core", 1)
 	add_equipment("archer_core", 1)
+	add_equipment("basic_sensor", 3)
+	add_equipment("basic_booster", 3)
+
+
 
 # =============================================
 # MONEY MANAGEMENT
@@ -404,6 +408,7 @@ func from_dict(data: Dictionary) -> void:
 func add_debug_items() -> void:
 	"""Add various items for testing"""
 	add_equipment("assault_rifle", 5)
+	add_equipment("pulse_rifle", 2)
 	add_equipment("grenade_launcher", 2)
 	add_equipment("basic_armor", 10)
 	add_equipment("warrior_core", 3)

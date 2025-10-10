@@ -14,7 +14,7 @@ static func create_basic_sensor() -> Sensor:
 	sensor.manufacturer = "OptiTech"
 	sensor.description = "Standard targeting and detection system"
 	sensor.cost = 250
-	sensor.power_draw = 2
+	sensor.power_draw = 1
 	sensor.accuracy_bonus = 10
 	sensor.range_bonus = 1
 	sensor.detection_range = 2

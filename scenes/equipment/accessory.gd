@@ -53,6 +53,6 @@ static func create_health_regen_accessory() -> Accessory:
 	accessory.description = "Microscopic repair bots that slowly repair equipment"
 	accessory.cost = 500
 	accessory.power_draw = 2
-	accessory.health_bonus = 10
-	accessory.special_effects = ["health_regen"]
+	#accessory.health_bonus = 10
+	#accessory.special_effects = ["health_regen"]
 	return accessory

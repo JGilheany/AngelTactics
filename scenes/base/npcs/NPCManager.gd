@@ -14,7 +14,7 @@ var npc_classes = {
 	"storage": StorageKeeperNPC,
 	# Add more as you create them:
 	# "command_center": CommanderNPC,
-	# "barracks": SergeantNPC,
+	"barracks": BarracksSergeantNPC,
 	# "workshop": EngineerNPC,
 	# "medical": MedicNPC,
 	# "research": ScientistNPC,
@@ -166,6 +166,8 @@ func create_npc_for_room(room_key: String, room_node: Node3D) -> BaseNPC:
 	# Connect specific signals for specialized NPCs
 	if npc is StorageKeeperNPC:
 		(npc as StorageKeeperNPC).storage_interface_requested.connect(_on_storage_interface_requested)
+	elif npc is BarracksSergeantNPC:  
+		(npc as BarracksSergeantNPC).barracks_interface_requested.connect(_on_barracks_interface_requested)
 	
 	# Store reference
 	npcs[room_key] = npc
@@ -208,6 +210,11 @@ func _on_storage_interface_requested(npc: StorageKeeperNPC):
 	"""Handle storage interface request"""
 	# This will be handled by the base scene
 	npc_interaction_requested.emit("storage", npc)
+
+func _on_barracks_interface_requested(npc: BarracksSergeantNPC):
+	"""Handle barracks interface request"""
+	# This will be handled by the base scene
+	npc_interaction_requested.emit("barracks", npc)
 
 # Utility functions
 func get_npc_count() -> int:

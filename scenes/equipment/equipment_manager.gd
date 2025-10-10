@@ -10,6 +10,7 @@ static func create_equipment_by_name(equipment_name: String) -> Equipment:
 	match equipment_name:
 		# Weapons
 		"assault_rifle": return Weapon.create_assault_rifle()
+		"pulse_rifle": return Weapon.create_pulse_rifle()
 		"knife": return Weapon.create_knife() 
 		"grenade_launcher": return Weapon.create_grenade_launcher()
 		"hound_claws": return Weapon.create_hound_claws()
@@ -41,7 +42,7 @@ static func create_equipment_by_name(equipment_name: String) -> Equipment:
 
 static func get_all_weapon_names() -> Array[String]:
 	"""Get list of all available weapon names"""
-	return ["assault_rifle", "knife", "grenade_launcher", "hound_claws"]
+	return ["assault_rifle", "pulse_rifle", "knife", "grenade_launcher", "hound_claws"]
 
 static func get_all_armor_names() -> Array[String]:
 	"""Get list of all available armor names"""
@@ -49,7 +50,7 @@ static func get_all_armor_names() -> Array[String]:
 
 static func get_all_equipment_names() -> Array[String]:
 	"""Get list of all available equipment names"""
-	return ["assault_rifle", "knife", "grenade_launcher", "hound_claws",
+	return ["assault_rifle", "pulse_rifle", "knife", "grenade_launcher", "hound_claws",
 			"basic_armor", "basic_booster", "basic_reactor", "basic_sensor",
 			"basic_accessory", "health_regen_accessory",
 			"warrior_core", "archer_core", "assassin_core"]

@@ -19,6 +19,6 @@ static func create_basic_reactor() -> Reactor:
 	reactor.manufacturer = "PowerCore Systems"
 	reactor.description = "Standard fusion reactor providing reliable power"
 	reactor.cost = 300
-	reactor.power_output = 12
+	reactor.power_output = 20
 	reactor.speed_bonus = -1  # Weight penalty
 	return reactor

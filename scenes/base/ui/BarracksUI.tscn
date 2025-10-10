@@ -1,0 +1,650 @@
+[gd_scene load_steps=5 format=3 uid="uid://d3h36yrxmjy5e"]
+
+[ext_resource type="Script" uid="uid://knufmii5e01q" path="res://scenes/base/ui/BarracksUI.gd" id="1_jmg8x"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dmsi8"]
+bg_color = Color(0.51, 0.470985, 0.2499, 0.941176)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.4, 0.4, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jmg8x"]
+bg_color = Color(0.4, 0.392, 0.376, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eyxn0"]
+bg_color = Color(0.2415, 0.69, 0, 1)
+
+[node name="BarracksUI" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 553.0
+offset_top = 244.0
+offset_right = 553.0
+offset_bottom = 244.0
+script = ExtResource("1_jmg8x")
+
+[node name="RoomPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 74.0
+offset_bottom = 74.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dmsi8")
+
+[node name="MainContainer" type="VBoxContainer" parent="RoomPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderContainer" type="HBoxContainer" parent="RoomPanel/MainContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="RoomPanel/MainContainer/HeaderContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "Barracks - Squad Management"
+
+[node name="SquadInfoLabel" type="Label" parent="RoomPanel/MainContainer/HeaderContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Units 0/8"
+horizontal_alignment = 2
+
+[node name="ContentContainer" type="HBoxContainer" parent="RoomPanel/MainContainer"]
+custom_minimum_size = Vector2(0, 550)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="SquadPanel" type="Panel" parent="RoomPanel/MainContainer/ContentContainer"]
+custom_minimum_size = Vector2(280, 400)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_jmg8x")
+
+[node name="SquadContainer" type="VBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/SquadPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(10, 10)
+theme_override_constants/separation = 10
+
+[node name="SquadListLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/SquadPanel/SquadContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Squad Roster"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="RoomPanel/MainContainer/ContentContainer/SquadPanel/SquadContainer"]
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="UnitList" type="VBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/SquadPanel/SquadContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 5
+
+[node name="SquadActionsContainer" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/SquadPanel/SquadContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="AddUnitButton" type="Button" parent="RoomPanel/MainContainer/ContentContainer/SquadPanel/SquadContainer/SquadActionsContainer"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Add Unit"
+
+[node name="RemoveUnitButton" type="Button" parent="RoomPanel/MainContainer/ContentContainer/SquadPanel/SquadContainer/SquadActionsContainer"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Remove Unit"
+
+[node name="UnitDetailsPanel" type="Panel" parent="RoomPanel/MainContainer/ContentContainer"]
+custom_minimum_size = Vector2(300, 400)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_jmg8x")
+
+[node name="UnitDetailsContainer" type="VBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel"]
+layout_mode = 1
+offset_right = 209.0
+offset_bottom = 532.0
+pivot_offset = Vector2(10, 10)
+theme_override_constants/separation = 8
+
+[node name="UnitNameContainer" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="UnitNameLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/UnitNameContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "Select a unit..."
+
+[node name="EditNameButton" type="Button" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/UnitNameContainer"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Rename"
+
+[node name="UnitStatsContainer" type="VBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="ClassLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/UnitStatsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Class"
+
+[node name="HealthLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/UnitStatsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Health"
+
+[node name="SpeedLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/UnitStatsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Speed"
+
+[node name="ArmorLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/UnitStatsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Armor"
+
+[node name="PowerLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/UnitStatsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Power"
+
+[node name="Seperator1" type="HSeparator" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer"]
+layout_mode = 2
+
+[node name="EquipmentSectionLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Equipment Loadout"
+horizontal_alignment = 1
+
+[node name="EquipmentSlotsContainer" type="VBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="CoreSlot" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer"]
+layout_mode = 2
+
+[node name="CoreLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/CoreSlot"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Core"
+
+[node name="CoreEquipmentLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/CoreSlot"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "None"
+
+[node name="CoreChangeButton" type="Button" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/CoreSlot"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "Change"
+
+[node name="PrimaryWeaponSlot" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer"]
+layout_mode = 2
+
+[node name="PrimaryWeaponLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/PrimaryWeaponSlot"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Primary"
+
+[node name="PrimaryWeaponEquipmentLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/PrimaryWeaponSlot"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "None"
+
+[node name="PrimaryWeaponChangeButton" type="Button" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/PrimaryWeaponSlot"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "Change"
+
+[node name="SidearmSlot" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer"]
+layout_mode = 2
+
+[node name="SidearmLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/SidearmSlot"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Sidearm"
+
+[node name="SidearmEquipmentLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/SidearmSlot"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "None"
+
+[node name="SidearmChangeButton" type="Button" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/SidearmSlot"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "Change"
+
+[node name="ArmorSlot" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer"]
+layout_mode = 2
+
+[node name="ArmorLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/ArmorSlot"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Armor"
+
+[node name="ArmorEquipmentLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/ArmorSlot"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "None"
+
+[node name="ArmorChangeButton" type="Button" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/ArmorSlot"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "Change"
+
+[node name="ReactorSlot" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer"]
+layout_mode = 2
+
+[node name="ReactorLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/ReactorSlot"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Reactor"
+
+[node name="ReactorEquipmentLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/ReactorSlot"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "None"
+
+[node name="ReactorChangeButton" type="Button" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/ReactorSlot"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "Change"
+
+[node name="BoosterSlot" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer"]
+layout_mode = 2
+
+[node name="BoosterLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/BoosterSlot"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Booster"
+
+[node name="BoosterEquipmentLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/BoosterSlot"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "None"
+
+[node name="BoosterChangeButton" type="Button" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/BoosterSlot"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "Change"
+
+[node name="SensorsSlot" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer"]
+layout_mode = 2
+
+[node name="SensorsLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/SensorsSlot"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Sensors"
+
+[node name="SensorsEquipmentLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/SensorsSlot"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "None"
+
+[node name="SensorsChangeButton" type="Button" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/SensorsSlot"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "Change"
+
+[node name="Accessory1Slot" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer"]
+layout_mode = 2
+
+[node name="Accessory1Label" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/Accessory1Slot"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Accessory"
+
+[node name="Accessory1EquipmentLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/Accessory1Slot"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "None"
+
+[node name="Accessory1ChangeButton" type="Button" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/Accessory1Slot"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "Change"
+
+[node name="Accessory2Slot" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer"]
+layout_mode = 2
+
+[node name="Accessory2Label" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/Accessory2Slot"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Accessory"
+
+[node name="Accessory2EquipmentLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/Accessory2Slot"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "None"
+
+[node name="Accessory2ChangeButton" type="Button" parent="RoomPanel/MainContainer/ContentContainer/UnitDetailsPanel/UnitDetailsContainer/EquipmentSlotsContainer/Accessory2Slot"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "Change"
+
+[node name="NPCPanel" type="Panel" parent="RoomPanel/MainContainer/ContentContainer"]
+visible = false
+custom_minimum_size = Vector2(250, 300)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_jmg8x")
+
+[node name="NPCContainer" type="VBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/NPCPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="NPCNameLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/NPCPanel/NPCContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Sergeant"
+horizontal_alignment = 1
+
+[node name="NPCPortrait" type="Panel" parent="RoomPanel/MainContainer/ContentContainer/NPCPanel/NPCContainer"]
+custom_minimum_size = Vector2(180, 180)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_eyxn0")
+
+[node name="DialogueLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/NPCPanel/NPCContainer"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+text = "Welcome to barracks, lieutenant"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="UnitDisplayPanel" type="Panel" parent="RoomPanel/MainContainer/ContentContainer"]
+custom_minimum_size = Vector2(280, 400)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_jmg8x")
+
+[node name="UnitDisplayContainer" type="VBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(10, 10)
+theme_override_constants/separation = 15
+
+[node name="UnitViewport" type="SubViewport" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer"]
+snap_2d_transforms_to_pixel = true
+snap_2d_vertices_to_pixel = true
+size = Vector2i(260, 200)
+render_target_update_mode = 4
+
+[node name="UnitModel3D" type="Node3D" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/UnitViewport"]
+
+[node name="UnitMesh" type="MeshInstance3D" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/UnitViewport/UnitModel3D"]
+
+[node name="Camera3D" type="Camera3D" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/UnitViewport/UnitModel3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
+fov = 45.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/UnitViewport/UnitModel3D"]
+transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 1, 1, 1)
+
+[node name="WRVSSStatsContainer" type="VBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="WRVSSTitle" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/WRVSSStatsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Attributes"
+horizontal_alignment = 1
+
+[node name="WisdomContainer" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/WRVSSStatsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="WisdomLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/WRVSSStatsContainer/WisdomContainer"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+tooltip_text = "Mental clarity and tactical awareness."
+mouse_filter = 0
+theme_override_font_sizes/font_size = 12
+text = "Wisdom"
+horizontal_alignment = 1
+
+[node name="WisdomValue" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/WRVSSStatsContainer/WisdomContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "10"
+horizontal_alignment = 2
+
+[node name="RageContainer" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/WRVSSStatsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RageLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/WRVSSStatsContainer/RageContainer"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+tooltip_text = "Combat fury, augmentation rejection."
+mouse_filter = 0
+theme_override_font_sizes/font_size = 12
+text = "Rage"
+horizontal_alignment = 1
+
+[node name="RageValue" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/WRVSSStatsContainer/RageContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "10"
+horizontal_alignment = 2
+
+[node name="VirtueContainer" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/WRVSSStatsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="VirtueLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/WRVSSStatsContainer/VirtueContainer"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+tooltip_text = "Squad cohesion, ability to boost others."
+mouse_filter = 0
+theme_override_font_sizes/font_size = 12
+text = "Virtue"
+horizontal_alignment = 1
+
+[node name="VirtueValue" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/WRVSSStatsContainer/VirtueContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "10"
+horizontal_alignment = 2
+
+[node name="StrengthContainer" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/WRVSSStatsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="StrengthLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/WRVSSStatsContainer/StrengthContainer"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+tooltip_text = "Mental fortitude, ability to resist control effects."
+mouse_filter = 0
+theme_override_font_sizes/font_size = 12
+text = "Strength"
+horizontal_alignment = 1
+
+[node name="StrengthValue" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/WRVSSStatsContainer/StrengthContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "10"
+horizontal_alignment = 2
+
+[node name="SteelContainer" type="HBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/WRVSSStatsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SteelLabel" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/WRVSSStatsContainer/SteelContainer"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+tooltip_text = "Augment aptitude."
+mouse_filter = 0
+theme_override_font_sizes/font_size = 12
+text = "Steel"
+horizontal_alignment = 1
+
+[node name="SteelValue" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/WRVSSStatsContainer/SteelContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "10"
+horizontal_alignment = 2
+
+[node name="RelationshipsContainer" type="VBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 5
+
+[node name="RelationshipsTitle" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/RelationshipsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Relationships"
+horizontal_alignment = 1
+
+[node name="RelationshipScrollContainer" type="ScrollContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/RelationshipsContainer"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RelationshipsList" type="VBoxContainer" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/RelationshipsContainer/RelationshipScrollContainer"]
+layout_mode = 2
+
+[node name="RelationshipsPlaceholder" type="Label" parent="RoomPanel/MainContainer/ContentContainer/UnitDisplayPanel/UnitDisplayContainer/RelationshipsContainer"]
+modulate = Color(0.7, 0.7, 0.7, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Coming soon..."
+horizontal_alignment = 1
+
+[node name="ActionsPanel" type="HBoxContainer" parent="RoomPanel/MainContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="FocusUnitButton" type="Button" parent="RoomPanel/MainContainer/ActionsPanel"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Focus on Unit"
+
+[node name="ValidateLoadoutButton" type="Button" parent="RoomPanel/MainContainer/ActionsPanel"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Validate Loadout"
+
+[node name="CloseButton" type="Button" parent="RoomPanel/MainContainer/ActionsPanel"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Close Barracks"
+
+[node name="EquipmentSelectionDialog" type="AcceptDialog" parent="."]
+auto_translate_mode = 1
+size = Vector2i(400, 500)
+dialog_text = "Select Equipment"
+
+[node name="DialogContainer" type="VBoxContainer" parent="EquipmentSelectionDialog"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="DialogTitle" type="Label" parent="EquipmentSelectionDialog/DialogContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Choose equipment for slot:"
+
+[node name="SearchContainer" type="HBoxContainer" parent="EquipmentSelectionDialog/DialogContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SearchField" type="LineEdit" parent="EquipmentSelectionDialog/DialogContainer/SearchContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Search equipment..."
+
+[node name="FilterDropdown" type="OptionButton" parent="EquipmentSelectionDialog/DialogContainer/SearchContainer"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+
+[node name="EquipmentScrollContainer" type="ScrollContainer" parent="EquipmentSelectionDialog/DialogContainer"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="EquipmentList" type="VBoxContainer" parent="EquipmentSelectionDialog/DialogContainer/EquipmentScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 5
+
+[node name="DialogActions" type="HBoxContainer" parent="EquipmentSelectionDialog/DialogContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="ConfirmButton" type="Button" parent="EquipmentSelectionDialog/DialogContainer/DialogActions"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+text = "Equip"
+
+[node name="CancelButton" type="Button" parent="EquipmentSelectionDialog/DialogContainer/DialogActions"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+text = "Cancel"

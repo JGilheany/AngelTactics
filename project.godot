@@ -15,6 +15,10 @@ run/main_scene="uid://7gyyt0yjpafh"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
 
+[autoload]
+
+SquadManager="*res://scenes/combat/squad_manager.gd"
+
 [input]
 
 ui_select={

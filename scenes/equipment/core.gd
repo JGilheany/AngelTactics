@@ -10,8 +10,7 @@ extends Equipment
 @export var ability_cooldown: int = 0      # Turns between ability uses
 @export var restricts_primary_weapon: bool = false  # Some cores are integrated weapons
 
-# REMOVED: @export var allowed_unit_classes: Array[String] = []
-# This property is already inherited from Equipment.gd
+
 
 # Core stats - these define the base capabilities of the unit class
 @export_group("Base Stats")
